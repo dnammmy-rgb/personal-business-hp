@@ -55,7 +55,8 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
   --gold-dark: #A6813F;
   --gold-soft: #EEE3C8;
 
-  --line-green: #06C755;
+  --line-green: #5B8A6E;
+  --line-green-soft: #E4EBE2;
 
   /* ヒーロー背景画像。差し替える場合はファイル名を変更するか、このパスを書き換えてください */
   --hero-bg-image: url("../assets/images/hero-bg.webp");
@@ -107,10 +108,17 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
 }
 .btn--outline:hover { background: var(--accent-soft); transform: translateY(-2px); }
 .btn--line {
-  background: var(--line-green);
-  color: #fff;
+  background: var(--bg-surface);
+  color: var(--line-green);
+  border-color: var(--line-green);
 }
-.btn--line:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(6,199,85,0.3); }
+.btn--line:hover { background: var(--line-green-soft); transform: translateY(-2px); }
+.final-cta .btn--line {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.55);
+}
+.final-cta .btn--line:hover { background: rgba(255, 255, 255, 0.22); }
 .btn--large { padding: 18px 40px; font-size: 1.05rem; }
 .btn--small { padding: 10px 22px; font-size: 0.85rem; }
 .btn--full { width: 100%; }
