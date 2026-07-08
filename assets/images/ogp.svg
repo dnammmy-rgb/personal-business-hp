@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#FAF7F2"/>
+  <rect width="1200" height="630" fill="none" stroke="#E6DCCB" stroke-width="8"/>
+  <circle cx="150" cy="150" r="70" fill="#E8D3CB"/>
+  <text x="600" y="300" font-size="56" font-family="Georgia, serif" fill="#3E362E" text-anchor="middle" font-weight="bold">営業も、事務も。</text>
+  <text x="600" y="380" font-size="56" font-family="Georgia, serif" fill="#B5786A" text-anchor="middle" font-weight="bold">あなたの"右腕"になります。</text>
+  <text x="600" y="450" font-size="26" font-family="sans-serif" fill="#837568" text-anchor="middle">営業代行 ／ 事務代行 ／ 秘書業務 ／ バックオフィス支援</text>
+</svg>
