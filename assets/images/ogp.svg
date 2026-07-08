@@ -1,8 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
-  <rect width="1200" height="630" fill="#FAF7F2"/>
-  <rect width="1200" height="630" fill="none" stroke="#E6DCCB" stroke-width="8"/>
-  <circle cx="150" cy="150" r="70" fill="#E8D3CB"/>
-  <text x="600" y="300" font-size="56" font-family="Georgia, serif" fill="#3E362E" text-anchor="middle" font-weight="bold">営業も、事務も。</text>
-  <text x="600" y="380" font-size="56" font-family="Georgia, serif" fill="#B5786A" text-anchor="middle" font-weight="bold">あなたの"右腕"になります。</text>
-  <text x="600" y="450" font-size="26" font-family="sans-serif" fill="#837568" text-anchor="middle">営業代行 ／ 事務代行 ／ 秘書業務 ／ バックオフィス支援</text>
+  <rect width="1200" height="630" fill="#FAF7F3"/>
+  <rect width="1200" height="630" fill="none" stroke="#EEE3C8" stroke-width="8"/>
+  <circle cx="150" cy="150" r="70" fill="#EAD6DA"/>
+  <text x="150" y="160" font-size="30" font-family="Georgia, serif" fill="#9B5A6E" text-anchor="middle" font-weight="bold">FD</text>
+  <text x="600" y="270" font-size="30" font-family="sans-serif" fill="#A6813F" text-anchor="middle" letter-spacing="4">FLOW DESIGN</text>
+  <text x="600" y="350" font-size="52" font-family="Georgia, serif" fill="#3E3530" text-anchor="middle" font-weight="bold">営業も、事務も、整える。</text>
+  <text x="600" y="420" font-size="26" font-family="sans-serif" fill="#8C7B72" text-anchor="middle">小さな会社の営業・事務・業務サポート</text>
 </svg>
