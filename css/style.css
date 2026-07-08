@@ -412,17 +412,24 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
   padding-bottom: 16px;
   border-bottom: 1px solid var(--border-soft);
 }
-.service-group__icon {
-  background: linear-gradient(135deg, var(--gold), var(--accent));
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+.service-icon-badge {
+  background: var(--bg-alt);
+  border: 1px solid var(--border-soft);
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
-.service-group__icon .icon { width: 20px; height: 20px; stroke: #fff; margin: 0; }
+.service-icon-badge .icon {
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  stroke: var(--gold-dark);
+  stroke-width: 2;
+}
 .service-group__list li {
   position: relative;
   padding-left: 20px;
