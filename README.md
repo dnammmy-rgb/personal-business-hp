@@ -1,4 +1,4 @@
-# 右腕サポート — 個人事業ホームページ（LP）
+# Flow Design — 個人事業ホームページ（LP）
 
 営業代行・事務代行・秘書業務・バックオフィス支援を行うフリーランス向けの、
 見積依頼・無料相談への導線を最優先にした1ページ完結型ホームページです。
@@ -15,7 +15,8 @@ personal-business-hp/
 ├── assets/
 │   └── images/
 │       ├── favicon.svg     # 仮ファビコン
-│       └── ogp.svg         # 仮OGP画像（SNSシェア用）
+│       ├── ogp.svg         # 仮OGP画像（SNSシェア用）
+│       └── hero-bg.webp    # ファーストビュー背景写真
 └── README.md
 ```
 
@@ -47,6 +48,7 @@ VS Codeを使っている場合は「Live Server」拡張機能でも確認で�
 | 内容 | 該当箇所（index.htmlのid） |
 |---|---|
 | キャッチコピー・サブコピー | `#hero` 内 `.hero__title` / `.hero__sub` |
+| ヒーロー背景写真 | `assets/images/hero-bg.webp` を同名で上書き（推奨・横長 1600px前後）、またはパスを変える場合は `css/style.css` の `--hero-bg-image` を書き換え |
 | お悩みリスト | `#worries` 内 `.card--worry` |
 | 提供サービス一覧 | `#services` 内 `.service-group__list` |
 | 選ばれる理由 | `#reasons` 内 `.card--reason` |

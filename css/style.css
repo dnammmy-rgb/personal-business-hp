@@ -57,6 +57,9 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
 
   --line-green: #06C755;
 
+  /* ヒーロー背景画像。差し替える場合はファイル名を変更するか、このパスを書き換えてください */
+  --hero-bg-image: url("../assets/images/hero-bg.webp");
+
   --radius-lg: 20px;
   --radius-md: 14px;
   --radius-sm: 8px;
@@ -205,13 +208,42 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
 .hero__bg {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(circle at 15% 20%, rgba(181, 120, 106, 0.12), transparent 45%),
-    radial-gradient(circle at 85% 0%, rgba(181, 120, 106, 0.10), transparent 40%),
-    linear-gradient(180deg, var(--bg-alt) 0%, var(--bg-base) 60%);
   z-index: -1;
+  /* モバイル: 写真は雰囲気だけ残す程度に、濃いベージュのベールで覆う */
+  background-image:
+    linear-gradient(rgba(250, 247, 243, 0.93), rgba(250, 247, 243, 0.93)),
+    var(--hero-bg-image);
+  background-size: cover, cover;
+  background-position: center, center 35%;
+  background-repeat: no-repeat, no-repeat;
 }
 .hero__inner { text-align: center; max-width: 860px; }
+
+@media (min-width: 861px) {
+  .hero__bg {
+    /* PC: 右側の写真(デスク・花・ノート)を活かし、左〜中央は文字用に淡くフェード */
+    background-image:
+      linear-gradient(
+        105deg,
+        var(--bg-base) 0%,
+        var(--bg-base) 30%,
+        rgba(250, 247, 243, 0.78) 46%,
+        rgba(250, 247, 243, 0.3) 63%,
+        rgba(250, 247, 243, 0) 80%
+      ),
+      var(--hero-bg-image);
+    background-size: cover, cover;
+    background-position: center, right -40px center;
+  }
+  .hero__inner {
+    text-align: left;
+    max-width: 620px;
+    margin: 0;
+  }
+  .hero__cta-group,
+  .hero__badges { justify-content: flex-start; }
+  .hero__eyebrow { margin-left: 0; }
+}
 .hero__eyebrow {
   display: inline-flex;
   align-items: center;
