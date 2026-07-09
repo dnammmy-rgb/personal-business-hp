@@ -430,6 +430,11 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
   stroke: var(--gold-dark);
   stroke-width: 2;
 }
+.service-group__desc {
+  font-size: 0.85rem;
+  color: var(--text-sub);
+  margin: -4px 0 16px;
+}
 .service-group__list li {
   position: relative;
   padding-left: 20px;
@@ -476,7 +481,7 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
 .card--reason p { font-size: 0.9rem; color: var(--text-sub); }
 
 /* Plans */
-.cards--plans { grid-template-columns: repeat(3, 1fr); align-items: stretch; }
+.cards--plans { grid-template-columns: repeat(2, 1fr); align-items: stretch; max-width: 900px; margin-left: auto; margin-right: auto; }
 .card--plan {
   position: relative;
   background: var(--bg-surface);
