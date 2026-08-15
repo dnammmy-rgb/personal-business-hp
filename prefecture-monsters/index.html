@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>都道府県モンスターズ 〜47都道府県を集めて全国制覇！〜</title>
+<meta name="description" content="クイズに答えて47都道府県のモンスターを集めよう！小学生の自由研究にもぴったりな都道府県学習ゲーム。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗾</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Yusei+Magic&family=Noto+Sans+JP:wght@400;500;700;900&display=swap">
+<style>
+  :root{
+    --bg-deep:#1b1147;
+    --bg-deep2:#2b1a63;
+    --panel:#ffffff;
+    --panel-soft:#f4f1ff;
+    --accent:#ff8f3c;
+    --accent-deep:#e8631a;
+    --accent2:#3ccf8f;
+    --accent3:#3c9cff;
+    --danger:#ff5c6c;
+    --ink:#2c2450;
+    --ink-soft:#5c5480;
+    --gold:#ffd257;
+    --card-radius:20px;
+    --shadow:0 10px 26px rgba(20,10,60,.28);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:"Noto Sans JP","Yusei Magic",sans-serif;
+    background:
+      radial-gradient(circle at 15% 10%, #3a2680 0%, transparent 45%),
+      radial-gradient(circle at 90% 80%, #1b3a7a 0%, transparent 50%),
+      linear-gradient(160deg, var(--bg-deep), var(--bg-deep2) 60%, #10123a 100%);
+    background-attachment:fixed;
+    color:var(--ink);
+    min-height:100vh;
+    -webkit-tap-highlight-color:transparent;
+  }
+  #app{
+    max-width:760px;
+    margin:0 auto;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+  .hidden{display:none !important;}
+
+  /* ===== Top status bar ===== */
+  #statusbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    padding:8px 12px;
+    background:rgba(15,10,45,.55);
+    backdrop-filter:blur(6px);
+    color:#fff;
+    position:sticky;
+    top:0;
+    z-index:50;
+    font-size:.8rem;
+    font-weight:700;
+    border-bottom:2px solid rgba(255,255,255,.08);
+  }
+  #statusbar .stat{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    background:rgba(255,255,255,.08);
+    padding:5px 9px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  #statusbar .stat b{color:var(--gold); font-size:.95rem;}
+  #navbtns{display:flex; gap:6px;}
+  #navbtns button{
+    background:rgba(255,255,255,.12);
+    border:none;
+    color:#fff;
+    width:38px;height:38px;
+    border-radius:12px;
+    font-size:1.1rem;
+    cursor:pointer;
+  }
+  #navbtns button:active{transform:scale(.92);}
+
+  main{
+    flex:1;
+    padding:16px 14px 40px;
+  }
+
+  h1,h2,h3{margin:0 0 8px; font-family:"Yusei Magic","Noto Sans JP",sans-serif;}
+
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    border:none;
+    border-radius:16px;
+    padding:16px 20px;
+    font-size:1.05rem;
+    font-weight:700;
+    cursor:pointer;
+    font-family:inherit;
+    box-shadow:var(--shadow);
+    transition:transform .08s ease;
+    min-height:52px;
+  }
+  .btn:active{transform:translateY(2px) scale(.98);}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-deep)); color:#fff;}
+  .btn-secondary{background:#fff; color:var(--ink); border:2px solid #e2ddfa;}
+  .btn-green{background:linear-gradient(135deg,#4fe0a0,#20b076); color:#fff;}
+  .btn-blue{background:linear-gradient(135deg,#5cb3ff,#2b7fe0); color:#fff;}
+  .btn-danger{background:linear-gradient(135deg,#ff7b8a,#e8455a); color:#fff;}
+  .btn-block{display:flex; width:100%;}
+  .btn:disabled{opacity:.45; cursor:not-allowed; transform:none;}
+
+  /* ===== Title screen ===== */
+  #screen-title{
+    text-align:center;
+    color:#fff;
+    padding-top:6vh;
+  }
+  .title-badge{
+    display:inline-block;
+    font-size:.85rem;
+    background:rgba(255,255,255,.12);
+    padding:6px 14px;
+    border-radius:999px;
+    margin-bottom:18px;
+    letter-spacing:.05em;
+  }
+  #screen-title .game-title{
+    font-family:"Yusei Magic",sans-serif;
+    font-size:2.1rem;
+    line-height:1.35;
+    margin:0 0 10px;
+    text-shadow:0 4px 0 rgba(0,0,0,.25);
+  }
+  #screen-title .game-title .accent{color:var(--gold);}
+  #screen-title .sub{
+    font-size:1rem;
+    opacity:.85;
+    margin-bottom:30px;
+  }
+  .title-monsters{
+    font-size:2.6rem;
+    margin:10px 0 30px;
+    letter-spacing:.15em;
+  }
+  .title-monsters span{
+    display:inline-block;
+    animation:floaty 2.6s ease-in-out infinite;
+  }
+  .title-monsters span:nth-child(2){animation-delay:.3s;}
+  .title-monsters span:nth-child(3){animation-delay:.6s;}
+  .title-monsters span:nth-child(4){animation-delay:.9s;}
+  .title-monsters span:nth-child(5){animation-delay:1.2s;}
+  @keyframes floaty{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-10px);}
+  }
+  .title-buttons{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    max-width:340px;
+    margin:0 auto;
+  }
+  .title-progress{
+    margin-top:26px;
+    font-size:.85rem;
+    opacity:.75;
+  }
+
+  /* ===== Cards / panels ===== */
+  .panel{
+    background:var(--panel);
+    border-radius:var(--card-radius);
+    box-shadow:var(--shadow);
+    padding:18px;
+    margin-bottom:16px;
+  }
+  .panel-soft{background:var(--panel-soft);}
+  .section-title{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:#fff;
+    font-size:1.15rem;
+    margin:4px 0 12px;
+  }
+
+  /* ===== Quiz screen ===== */
+  .monster-stage{
+    text-align:center;
+    padding:20px 10px 8px;
+    position:relative;
+  }
+  .monster-emoji{
+    font-size:5.2rem;
+    display:inline-block;
+    filter:drop-shadow(0 8px 10px rgba(0,0,0,.25));
+    transition:filter .3s;
+  }
+  .monster-emoji.silhouette{
+    filter:brightness(0) opacity(.72);
+  }
+  .monster-emoji.bounce{
+    animation:bounce .7s ease;
+  }
+  @keyframes bounce{
+    0%{transform:translateY(0) scale(1);}
+    30%{transform:translateY(-26px) scale(1.08);}
+    50%{transform:translateY(0) scale(.96);}
+    70%{transform:translateY(-10px) scale(1.03);}
+    100%{transform:translateY(0) scale(1);}
+  }
+  .monster-name-tag{
+    font-weight:900;
+    font-size:1.3rem;
+    margin-top:6px;
+    color:var(--ink);
+  }
+  .monster-pref-tag{
+    color:var(--ink-soft);
+    font-size:.85rem;
+    margin-bottom:2px;
+  }
+  .region-chip{
+    display:inline-block;
+    background:var(--panel-soft);
+    color:var(--ink-soft);
+    font-size:.72rem;
+    padding:3px 10px;
+    border-radius:999px;
+    margin-bottom:6px;
+    font-weight:700;
+  }
+
+  .quiz-question{
+    font-size:1.15rem;
+    font-weight:700;
+    text-align:center;
+    margin:6px 0 18px;
+    line-height:1.5;
+  }
+  .choices{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .choice-btn{
+    background:#fff;
+    border:2px solid #e2ddfa;
+    border-radius:16px;
+    padding:15px 16px;
+    font-size:1.02rem;
+    font-weight:700;
+    text-align:left;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    cursor:pointer;
+    color:var(--ink);
+    min-height:52px;
+  }
+  .choice-btn .choice-letter{
+    background:var(--panel-soft);
+    color:var(--ink-soft);
+    width:28px;height:28px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:.85rem;
+    flex-shrink:0;
+  }
+  .choice-btn:active{transform:scale(.98);}
+  .choice-btn.correct{
+    background:#e7fbf1; border-color:var(--accent2); color:#1c8a5b;
+  }
+  .choice-btn.wrong{
+    background:#ffecee; border-color:var(--danger); color:#c22e3d;
+  }
+  .choice-btn.dim{opacity:.5;}
+  .choice-btn:disabled{cursor:default;}
+
+  .quiz-tools{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:16px;
+    gap:10px;
+  }
+  .hint-btn{
+    background:none;
+    border:2px dashed #c9c0f5;
+    color:var(--ink-soft);
+    padding:9px 14px;
+    border-radius:12px;
+    font-weight:700;
+    font-size:.85rem;
+    cursor:pointer;
+  }
+  .streak-indicator{
+    font-size:.8rem;
+    font-weight:700;
+    color:#fff;
+    background:rgba(255,255,255,.14);
+    padding:6px 12px;
+    border-radius:999px;
+  }
+  .hint-box{
+    margin-top:12px;
+    background:#fff7e0;
+    border:2px solid var(--gold);
+    border-radius:14px;
+    padding:12px 14px;
+    font-size:.92rem;
+    display:none;
+  }
+  .hint-box.show{display:block;}
+
+  /* ===== Result overlay ===== */
+  #result-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(15,8,40,.72);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:16px;
+  }
+  .result-card{
+    background:#fff;
+    border-radius:24px;
+    max-width:380px;
+    width:100%;
+    padding:28px 22px;
+    text-align:center;
+    box-shadow:0 20px 50px rgba(0,0,0,.4);
+    animation:pop .35s cubic-bezier(.2,1.4,.4,1);
+  }
+  @keyframes pop{
+    0%{transform:scale(.7); opacity:0;}
+    100%{transform:scale(1); opacity:1;}
+  }
+  .result-title{
+    font-size:1.7rem;
+    font-weight:900;
+    margin-bottom:6px;
+  }
+  .result-title.ok{color:var(--accent2);}
+  .result-title.ng{color:var(--danger);}
+  .result-emoji{font-size:3.6rem; margin:6px 0;}
+  .result-sub{font-size:1.05rem; font-weight:700; margin:6px 0;}
+  .result-msg{color:var(--ink-soft); font-size:.92rem; margin:10px 0 18px; line-height:1.6;}
+  .combo-banner{
+    background:linear-gradient(135deg,#ffb23c,#ff6a3c);
+    color:#fff;
+    font-weight:900;
+    padding:8px 12px;
+    border-radius:12px;
+    margin-bottom:12px;
+    font-size:.95rem;
+  }
+  .score-pop{
+    display:inline-block;
+    background:var(--panel-soft);
+    color:var(--accent-deep);
+    font-weight:900;
+    padding:6px 14px;
+    border-radius:999px;
+    margin-bottom:12px;
+  }
+  .levelup-banner{
+    background:linear-gradient(135deg,#7c5cff,#4c2fd8);
+    color:#fff;
+    font-weight:900;
+    padding:10px;
+    border-radius:12px;
+    margin-bottom:12px;
+    font-size:1rem;
+  }
+
+  /* ===== Dex ===== */
+  .dex-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    color:#fff;
+    margin-bottom:14px;
+  }
+  .dex-count{
+    background:rgba(255,255,255,.14);
+    padding:8px 14px;
+    border-radius:999px;
+    font-weight:900;
+  }
+  .dex-region-block{margin-bottom:18px;}
+  .dex-region-title{
+    color:#fff;
+    font-size:.95rem;
+    font-weight:700;
+    margin:0 0 8px 4px;
+    opacity:.9;
+  }
+  .dex-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(84px,1fr));
+    gap:8px;
+  }
+  .dex-card{
+    background:#fff;
+    border-radius:14px;
+    padding:8px 4px 10px;
+    text-align:center;
+    cursor:pointer;
+    box-shadow:0 4px 10px rgba(0,0,0,.15);
+    border:2px solid transparent;
+  }
+  .dex-card.locked{
+    background:#e7e4f2;
+    opacity:.75;
+  }
+  .dex-card .dex-emoji{font-size:1.9rem; display:block;}
+  .dex-card.locked .dex-emoji{filter:grayscale(1) brightness(.6);}
+  .dex-card .dex-label{
+    font-size:.68rem;
+    font-weight:700;
+    margin-top:4px;
+    color:var(--ink);
+    display:block;
+  }
+  .dex-card.locked .dex-label{color:#8f89ad;}
+
+  /* modal for dex detail */
+  #dex-detail-overlay{
+    position:fixed; inset:0; background:rgba(15,8,40,.72);
+    display:flex; align-items:center; justify-content:center;
+    z-index:110; padding:16px;
+  }
+  .dex-detail-card{
+    background:#fff; border-radius:22px; max-width:360px; width:100%;
+    padding:22px; text-align:center;
+  }
+  .dex-detail-emoji{font-size:4.2rem;}
+  .dex-detail-table{
+    text-align:left;
+    margin-top:14px;
+    font-size:.88rem;
+    border-top:2px solid var(--panel-soft);
+    padding-top:10px;
+  }
+  .dex-detail-table div{
+    display:flex;
+    justify-content:space-between;
+    padding:6px 2px;
+    border-bottom:1px dashed #eee;
+    gap:10px;
+  }
+  .dex-detail-table span:first-child{color:var(--ink-soft); font-weight:700; flex-shrink:0;}
+  .dex-detail-table span:last-child{text-align:right;}
+
+  /* ===== Region / boss screen ===== */
+  .region-card{
+    background:#fff;
+    border-radius:18px;
+    padding:16px;
+    margin-bottom:12px;
+    box-shadow:var(--shadow);
+  }
+  .region-card-top{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .region-card-top .boss-emoji{font-size:2.4rem;}
+  .region-card-top .region-info{flex:1;}
+  .region-card-top .region-name{font-weight:900; font-size:1.05rem;}
+  .region-card-top .boss-name{color:var(--ink-soft); font-size:.82rem;}
+  .region-progress-bar{
+    background:var(--panel-soft);
+    border-radius:999px;
+    height:10px;
+    margin-top:10px;
+    overflow:hidden;
+  }
+  .region-progress-fill{
+    background:linear-gradient(90deg,var(--accent2),#20b076);
+    height:100%;
+    border-radius:999px;
+    transition:width .4s;
+  }
+  .region-progress-text{
+    font-size:.78rem;
+    color:var(--ink-soft);
+    margin-top:6px;
+    display:flex;
+    justify-content:space-between;
+  }
+  .badge-cleared{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:linear-gradient(135deg,#ffd257,#ff9c3c);
+    color:#6b3d00;
+    font-weight:900;
+    font-size:.78rem;
+    padding:5px 10px;
+    border-radius:999px;
+    margin-top:8px;
+  }
+
+  /* boss battle */
+  .boss-hero{
+    text-align:center;
+    color:#fff;
+    padding:10px 0 20px;
+  }
+  .boss-hero .boss-big-emoji{font-size:5rem; display:block; animation:floaty 2s ease-in-out infinite;}
+  .boss-hp{
+    display:flex;
+    gap:6px;
+    justify-content:center;
+    margin-top:10px;
+  }
+  .boss-hp .pip{
+    width:26px; height:12px; border-radius:6px; background:rgba(255,255,255,.25);
+  }
+  .boss-hp .pip.on{background:var(--danger);}
+
+  /* howto */
+  .howto-step{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    margin-bottom:14px;
+  }
+  .howto-num{
+    background:var(--accent);
+    color:#fff;
+    font-weight:900;
+    width:30px;height:30px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .howto-step p{margin:0; line-height:1.6;}
+
+  /* complete screen */
+  #screen-complete{
+    text-align:center;
+    color:#fff;
+    padding-top:8vh;
+    position:relative;
+    overflow:hidden;
+  }
+  .complete-title{
+    font-size:2.4rem;
+    font-family:"Yusei Magic",sans-serif;
+    color:var(--gold);
+    text-shadow:0 4px 0 rgba(0,0,0,.3);
+    margin-bottom:6px;
+  }
+  .confetti-piece{
+    position:fixed;
+    top:-20px;
+    width:10px;height:16px;
+    opacity:.9;
+    animation:fall linear forwards;
+    z-index:5;
+  }
+  @keyframes fall{
+    to{ transform:translateY(110vh) rotate(360deg); opacity:.3;}
+  }
+
+  footer.credit{
+    text-align:center;
+    color:rgba(255,255,255,.4);
+    font-size:.72rem;
+    padding:20px 10px 30px;
+  }
+
+  @media (max-width:420px){
+    .monster-emoji{font-size:4.4rem;}
+    #screen-title .game-title{font-size:1.7rem;}
+    .title-monsters{font-size:2.1rem;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- status bar (hidden on title screen) -->
+  <div id="statusbar" class="hidden">
+    <div class="stat">⭐ <b id="stat-score">0</b></div>
+    <div class="stat">Lv.<b id="stat-level">1</b></div>
+    <div class="stat">📖 <b id="stat-count">0</b>/47</div>
+    <div id="navbtns">
+      <button id="nav-home" title="タイトルへ">🏠</button>
+      <button id="nav-dex" title="モンスター図鑑">📖</button>
+      <button id="nav-regions" title="地方ボス">🗾</button>
+    </div>
+  </div>
+
+  <main>
+
+    <!-- ============ TITLE ============ -->
+    <section id="screen-title">
+      <div class="title-badge">小学生の自由研究にもぴったり！</div>
+      <div class="title-monsters">
+        <span>🐻‍❄️</span><span>🍎</span><span>🐙</span><span>🦁</span><span>🍑</span>
+      </div>
+      <h1 class="game-title">都道府県モンスターズ<br><span class="accent">〜47都道府県を集めて全国制覇！〜</span></h1>
+      <p class="sub">クイズに答えてモンスターをGETしよう！</p>
+      <div class="title-buttons">
+        <button class="btn btn-primary" id="btn-start">🚀 冒険をはじめる</button>
+        <button class="btn btn-secondary" id="btn-open-dex">📖 モンスター図鑑</button>
+        <button class="btn btn-secondary" id="btn-open-howto">❓ 遊び方</button>
+      </div>
+      <div class="title-progress" id="title-progress"></div>
+    </section>
+
+    <!-- ============ HOWTO ============ -->
+    <section id="screen-howto" class="hidden">
+      <h2 class="section-title">❓ 遊び方</h2>
+      <div class="panel">
+        <div class="howto-step"><div class="howto-num">1</div><p>都道府県モンスターが登場したら、クイズに答えよう！</p></div>
+        <div class="howto-step"><div class="howto-num">2</div><p>正解するとモンスターをGET！図鑑に登録されるよ。</p></div>
+        <div class="howto-step"><div class="howto-num">3</div><p>こまったときは「ヒント」ボタンを押してみよう。</p></div>
+        <div class="howto-step"><div class="howto-num">4</div><p>連続で正解するとボーナス点がもらえるよ🔥</p></div>
+        <div class="howto-step"><div class="howto-num">5</div><p>1つの地方のモンスターを全部集めると、地方ボスが登場！3問中2問正解でたおせるよ。</p></div>
+        <div class="howto-step"><div class="howto-num">6</div><p>47都道府県 ＋ 7地方のボスを全部たおしたら「全国制覇」だ！</p></div>
+      </div>
+      <button class="btn btn-secondary btn-block" id="btn-howto-back">もどる</button>
+    </section>
+
+    <!-- ============ GAME (QUIZ) ============ -->
+    <section id="screen-game" class="hidden">
+      <div class="panel">
+        <div class="monster-stage">
+          <div class="region-chip" id="quiz-region-chip">-</div>
+          <div class="monster-emoji silhouette" id="quiz-monster-emoji">❓</div>
+          <div class="monster-pref-tag" id="quiz-pref-tag">？？？県</div>
+          <div class="monster-name-tag" id="quiz-monster-name">？？？</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="quiz-question" id="quiz-question">もんだいを よみこみちゅう…</div>
+        <div class="choices" id="quiz-choices"></div>
+        <div class="quiz-tools">
+          <button class="hint-btn" id="btn-hint">💡 ヒント</button>
+          <div class="streak-indicator" id="streak-indicator">連続正解 0</div>
+        </div>
+        <div class="hint-box" id="hint-box"></div>
+      </div>
+    </section>
+
+    <!-- ============ DEX ============ -->
+    <section id="screen-dex" class="hidden">
+      <div class="dex-header">
+        <h2 class="section-title" style="margin:0;">📖 モンスター図鑑</h2>
+        <div class="dex-count"><span id="dex-count-num">0</span> / 47 GET！</div>
+      </div>
+      <div id="dex-content"></div>
+      <button class="btn btn-secondary btn-block" id="btn-dex-back">もどる</button>
+    </section>
+
+    <!-- ============ REGIONS / BOSS LIST ============ -->
+    <section id="screen-regions" class="hidden">
+      <h2 class="section-title">🗾 日本地図・地方ボス</h2>
+      <div id="regions-content"></div>
+      <button class="btn btn-secondary btn-block" id="btn-regions-back">もどる</button>
+      <div class="panel panel-soft" style="margin-top:18px; text-align:center;">
+        <button class="btn btn-danger btn-block" id="btn-reset">🗑️ 最初からやり直す</button>
+      </div>
+    </section>
+
+    <!-- ============ BOSS INTRO ============ -->
+    <section id="screen-bossintro" class="hidden">
+      <div class="boss-hero">
+        <span class="boss-big-emoji" id="bossintro-emoji">👹</span>
+        <h2 style="margin-top:10px;">地方ボスがあらわれた！</h2>
+        <p id="bossintro-text" style="opacity:.85;"></p>
+      </div>
+      <button class="btn btn-primary btn-block" id="btn-boss-fight">⚔️ ボスにいどむ！</button>
+    </section>
+
+    <!-- ============ BOSS BATTLE ============ -->
+    <section id="screen-boss" class="hidden">
+      <div class="boss-hero">
+        <span class="boss-big-emoji" id="boss-emoji">👹</span>
+        <div id="boss-name" style="font-weight:900; font-size:1.2rem;"></div>
+        <div class="boss-hp" id="boss-hp"></div>
+      </div>
+      <div class="panel">
+        <div class="quiz-question" id="boss-question"></div>
+        <div class="choices" id="boss-choices"></div>
+      </div>
+    </section>
+
+    <!-- ============ COMPLETE ============ -->
+    <section id="screen-complete" class="hidden">
+      <div class="complete-title">全国制覇！！</div>
+      <div style="font-size:4rem;">🏆</div>
+      <h2>君は都道府県マスター！</h2>
+      <p style="opacity:.85;">47都道府県 × 7地方ボス、すべて制覇したよ！</p>
+      <div class="title-buttons" style="margin-top:24px;">
+        <button class="btn btn-secondary" id="btn-complete-dex">📖 図鑑を見る</button>
+        <button class="btn btn-secondary" id="btn-complete-home">🏠 タイトルへ</button>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="credit">都道府県モンスターズ / 自由研究向け学習ゲーム</footer>
+</div>
+
+<!-- result overlay -->
+<div id="result-overlay" class="hidden">
+  <div class="result-card" id="result-card"></div>
+</div>
+
+<!-- dex detail overlay -->
+<div id="dex-detail-overlay" class="hidden">
+  <div class="dex-detail-card" id="dex-detail-card"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* =========================================================
+   1. 都道府県データ
+   [id, 名前, よみ, 地方, 県庁所在地, 県庁よみ, モンスター名, 絵文字, 名物, 観光地, 特徴(短い), ヒント文]
+========================================================= */
+var RAW = [
+[1,"北海道","ほっかいどう","北海道・東北","札幌市","さっぽろし","ユキグマール","🐻‍❄️","じゃがいも","さっぽろ雪まつり","面積が日本一大きい","日本で一番面積が大きい都道府県だよ！雪まつりが有名だよ。"],
+[2,"青森県","あおもりけん","北海道・東北","青森市","あおもりし","リンゴロン","🍎","りんご","ねぶた祭り","りんごの生産量日本一","りんごの生産量が日本一だよ！ねぶた祭りも有名だね。"],
+[3,"岩手県","いわてけん","北海道・東北","盛岡市","もりおかし","ワンコソバオー","🥢","わんこそば","中尊寺金色堂","東北で面積が一番大きい","面積は東北で一番大きいよ。わんこそばを食べてみたいね！"],
+[4,"宮城県","みやぎけん","北海道・東北","仙台市","せんだいし","ギュータンダー","🐮","牛タン","仙台七夕まつり","杜の都とよばれる","牛タンが有名だよ。仙台七夕まつりも見てみたいね！"],
+[5,"秋田県","あきたけん","北海道・東北","秋田市","あきたし","ナマハーゲン","👹","きりたんぽ","男鹿半島","なまはげ発祥の地","なまはげが有名な県だよ。きりたんぽ鍋もおいしいよ！"],
+[6,"山形県","やまがたけん","北海道・東北","山形市","やまがたし","サクランボイド","🍒","さくらんぼ","蔵王温泉","さくらんぼの生産量日本一","さくらんぼの生産量が日本一だよ！"],
+[7,"福島県","ふくしまけん","北海道・東北","福島市","ふくしまし","モモッチュラ","🍑","もも","会津若松城","ももの生産がさかん","ももの生産がさかんな県だよ。会津若松城も有名だね。"],
+[8,"茨城県","いばらきけん","関東","水戸市","みとし","ナットーラス","🫘","納豆","偕楽園","納豆の生産量日本一","納豆の生産量が日本一だよ！"],
+[9,"栃木県","とちぎけん","関東","宇都宮市","うつのみやし","イチゴリラ","🍓","いちご","日光東照宮","いちごの生産量日本一","いちごの生産量が日本一だよ！日光東照宮も有名だね。"],
+[10,"群馬県","ぐんまけん","関東","前橋市","まえばしし","コンニャクィーン","🫧","こんにゃく","草津温泉","温泉がたくさんある","温泉がたくさんある県だよ。草津温泉が有名だね！"],
+[11,"埼玉県","さいたまけん","関東","さいたま市","さいたまし","センベェイガー","🍘","草加せんべい","川越の街並み","人口が全国で5番目に多い","人口が全国で5番目に多い県だよ。"],
+[12,"千葉県","ちばけん","関東","千葉市","ちばし","ピーナッツァー","🥜","落花生","東京ディズニーランド","落花生の生産量日本一","落花生の生産量が日本一だよ！ディズニーランドもあるね。"],
+[13,"東京都","とうきょうと","関東","新宿区","しんじゅくく","トーキョーポリス","🗼","もんじゃ焼き","東京タワー","日本の首都","日本の首都だよ！たくさんの人が住んでいるね。"],
+[14,"神奈川県","かながわけん","関東","横浜市","よこはまし","シュウマイオン","🥟","シュウマイ","横浜中華街","港町として発展した","横浜中華街が有名だよ。港町として発展したんだ。"],
+[15,"新潟県","にいがたけん","中部","新潟市","にいがたし","コシヒカリオン","🍚","お米(コシヒカリ)","佐渡島","お米の生産量日本一","お米の生産量が日本一だよ！"],
+[16,"富山県","とやまけん","中部","富山市","とやまし","ホタルイーカ","🦑","ホタルイカ","立山黒部アルペンルート","富山湾の景色が美しい","富山湾の景色がとってもきれいだよ。"],
+[17,"石川県","いしかわけん","中部","金沢市","かなざわし","キンパクン","✨","加賀料理","兼六園","金箔の生産量日本一","金箔の生産量が日本一だよ！兼六園も有名だね。"],
+[18,"福井県","ふくいけん","中部","福井市","ふくいし","キョウリューガ","🦖","越前ガニ","東尋坊","恐竜の化石がたくさん見つかる","恐竜の化石がたくさん見つかる県だよ！"],
+[19,"山梨県","やまなしけん","中部","甲府市","こうふし","ブドウニャン","🍇","ぶどう","富士五湖","ぶどうと桃の生産量日本一","ぶどうと桃の生産量が日本一だよ！富士山も見えるよ。"],
+[20,"長野県","ながのけん","中部","長野市","ながのし","ソバキング","🍜","そば","上高地","日本一海から遠い県","日本で一番海から遠い県だよ。そばがおいしいよ！"],
+[21,"岐阜県","ぎふけん","中部","岐阜市","ぎふし","ヒダギュラス","🏘️","飛騨牛","白川郷","合掌造りの村がある","合掌造りの白川郷が有名だよ。"],
+[22,"静岡県","しずおかけん","中部","静岡市","しずおかし","オチャッパー","🍵","お茶","富士山","お茶の生産量日本一","富士山やお茶で有名な県だよ！"],
+[23,"愛知県","あいちけん","中部","名古屋市","なごやし","ミソカッツ","🚗","みそかつ","名古屋城","自動車の生産がさかん","自動車の生産がさかんな県だよ。"],
+[24,"三重県","みえけん","近畿","津市","つし","イセエビーダ","🦐","伊勢えび","伊勢神宮","真珠の養殖がさかん","真珠の養殖がさかんだよ。伊勢神宮も有名だね。"],
+[25,"滋賀県","しがけん","近畿","大津市","おおつし","ビワッコ","🌊","ふなずし","琵琶湖","日本一大きい湖がある","日本一大きい湖、琵琶湖がある県だよ！"],
+[26,"京都府","きょうとふ","近畿","京都市","きょうとし","マッチャドラゴン","⛩️","抹茶","清水寺","昔の都でお寺や神社が多い","昔の都で、お寺や神社がたくさんあるよ。"],
+[27,"大阪府","おおさかふ","近畿","大阪市","おおさかし","タコヤキング","🐙","たこ焼き","大阪城","たこ焼き発祥の地","たこ焼きが生まれた土地だよ！"],
+[28,"兵庫県","ひょうごけん","近畿","神戸市","こうべし","コウベウシオン","🐄","神戸牛","姫路城","神戸牛で有名","神戸牛で有名だよ。姫路城も見てみたいね。"],
+[29,"奈良県","ならけん","近畿","奈良市","ならし","シカダイブツ","🦌","柿の葉ずし","奈良の大仏","鹿がたくさんいる","鹿がたくさんいる県だよ。大きな大仏もあるね。"],
+[30,"和歌山県","わかやまけん","近畿","和歌山市","わかやまし","ウメボッシュ","🌸","梅干し","那智の滝","みかんと梅の生産量日本一","みかんと梅の生産量が日本一だよ！"],
+[31,"鳥取県","とっとりけん","中国","鳥取市","とっとりし","サキュードーン","🏜️","二十世紀梨","鳥取砂丘","人口が一番少ない都道府県","人口が一番少ない都道府県だよ。鳥取砂丘が有名だね！"],
+[32,"島根県","しまねけん","中国","松江市","まつえし","シジミーム","🐚","しじみ","出雲大社","神話がたくさん残る","神話がたくさん残る県だよ。出雲大社が有名だね。"],
+[33,"岡山県","おかやまけん","中国","岡山市","おかやまし","モモタロウザウルス","🍑","白桃","後楽園","桃太郎伝説のふるさと","桃太郎伝説のふるさとだよ！"],
+[34,"広島県","ひろしまけん","中国","広島市","ひろしまし","オコノミヤーク","🦪","お好み焼き","厳島神社","かきの生産量日本一","かきの生産量が日本一だよ！厳島神社も有名だね。"],
+[35,"山口県","やまぐちけん","中国","山口市","やまぐちし","フグッチョ","🐡","ふぐ","秋吉台","ふぐ料理で有名","ふぐ料理で有名な県だよ！"],
+[36,"徳島県","とくしまけん","四国","徳島市","とくしまし","アワオドドン","🌀","すだち","鳴門の渦潮","阿波おどりが有名","阿波おどりが有名だよ！鳴門の渦潮もすごいよ。"],
+[37,"香川県","かがわけん","四国","高松市","たかまつし","ウドンキング","🍥","讃岐うどん","栗林公園","うどん屋さんが日本一多い","うどん屋さんが日本一多い県だよ！"],
+[38,"愛媛県","えひめけん","四国","松山市","まつやまし","ミカンダー","🍊","みかん","道後温泉","みかんの生産がさかん","みかんの生産がさかんな県だよ。"],
+[39,"高知県","こうちけん","四国","高知市","こうちし","カツオドン","🐟","かつおのたたき","桂浜","かつおの水揚げで有名","かつおの水あげで有名だよ！"],
+[40,"福岡県","ふくおかけん","九州・沖縄","福岡市","ふくおかし","メンタイガー","🌶️","明太子","太宰府天満宮","九州で一番人口が多い","九州で一番人口が多い県だよ。明太子が有名だね！"],
+[41,"佐賀県","さがけん","九州・沖縄","佐賀市","さがし","アリタヤキマル","🏺","呼子のイカ","吉野ヶ里遺跡","焼き物で有名","焼き物が有名な県だよ。吉野ヶ里遺跡もあるね。"],
+[42,"長崎県","ながさきけん","九州・沖縄","長崎市","ながさきし","カステーラン","🍰","カステラ","ハウステンボス","島の数が日本一多い","島の数が日本一多い県だよ！カステラもおいしいよ。"],
+[43,"熊本県","くまもとけん","九州・沖縄","熊本市","くまもとし","クマモトン","🍉","馬刺し","熊本城","すいかの生産量日本一","すいかの生産量が日本一だよ！"],
+[44,"大分県","おおいたけん","九州・沖縄","大分市","おおいたし","オンセンザウルス","♨️","とり天","別府温泉","温泉のわき出る量が日本一","温泉のわき出る量が日本一だよ！"],
+[45,"宮崎県","みやざきけん","九州・沖縄","宮崎市","みやざきし","マンゴレオン","🥭","マンゴー","青島神社","日照時間が長くあたたかい","日照時間が長くて、あたたかい県だよ。"],
+[46,"鹿児島県","かごしまけん","九州・沖縄","鹿児島市","かごしまし","サクラジマグマ","🌋","さつまいも","桜島","活火山の桜島がある","活発な火山、桜島がある県だよ！"],
+[47,"沖縄県","おきなわけん","九州・沖縄","那覇市","なはし","シーサードン","🦁","ゴーヤーチャンプルー","首里城","日本で一番南にある県","日本で一番南にある県だよ！シーサーが有名だね。"]
+];
+
+var PREFS = RAW.map(function(r){
+  return {
+    id:r[0], name:r[1], yomi:r[2], region:r[3], capital:r[4], capitalYomi:r[5],
+    monster:r[6], emoji:r[7], food:r[8], place:r[9], feature:r[10], hint:r[11]
+  };
+});
+var PREF_BY_ID = {};
+PREFS.forEach(function(p){ PREF_BY_ID[p.id] = p; });
+
+var REGION_ORDER = ["北海道・東北","関東","中部","近畿","中国","四国","九州・沖縄"];
+var BOSS = {
+  "北海道・東北":{name:"オオヌプリドラゴン", emoji:"🐉", desc:"雪と大地の守り神。北の国のモンスターたちを見守っているよ。"},
+  "関東":{name:"カントーガーディアン", emoji:"🛡️", desc:"都心を守る鉄壁の番人。たくさんの人々のくらしを支えているよ。"},
+  "中部":{name:"アルプスキング", emoji:"⛰️", desc:"高い山々を治める王者。日本のまん中にそびえ立っているよ。"},
+  "近畿":{name:"ミヤコエンペラー", emoji:"👑", desc:"古都に眠る伝説の皇帝。歴史の力を秘めているよ。"},
+  "中国":{name:"サンインサンヨウドラゴン", emoji:"🐲", desc:"海と山、二つの顔を持つ双頭の龍だよ。"},
+  "四国":{name:"シコクケンジャ", emoji:"🧙", desc:"四国の海をわたる、知恵深い賢者だよ。"},
+  "九州・沖縄":{name:"カルデラファイター", emoji:"🌋", desc:"火山のパワーをまとった熱き闘士だよ。"}
+};
+
+/* =========================================================
+   2. セーブデータ
+========================================================= */
+var STORAGE_KEY = "pref-monsters-save-v1";
+var state = null;
+
+function defaultState(){
+  return { collected:[], score:0, streak:0, bestStreak:0, bossCleared:[] };
+}
+function loadState(){
+  try{
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return defaultState();
+    var parsed = JSON.parse(raw);
+    return {
+      collected: Array.isArray(parsed.collected) ? parsed.collected : [],
+      score: typeof parsed.score === "number" ? parsed.score : 0,
+      streak: typeof parsed.streak === "number" ? parsed.streak : 0,
+      bestStreak: typeof parsed.bestStreak === "number" ? parsed.bestStreak : 0,
+      bossCleared: Array.isArray(parsed.bossCleared) ? parsed.bossCleared : []
+    };
+  }catch(e){
+    return defaultState();
+  }
+}
+function saveState(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }catch(e){ /* localStorage unavailable - ignore */ }
+}
+
+function getLevel(){
+  return Math.floor(state.collected.length/5)+1;
+}
+
+/* =========================================================
+   3. ユーティリティ
+========================================================= */
+function shuffle(arr){
+  var a = arr.slice();
+  for(var i=a.length-1;i>0;i--){
+    var j = Math.floor(Math.random()*(i+1));
+    var t=a[i]; a[i]=a[j]; a[j]=t;
+  }
+  return a;
+}
+function pickRandom(arr){
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+function sampleUnique(pool, n, excludeValue){
+  var uniq = [];
+  var seen = {};
+  shuffle(pool).forEach(function(v){
+    if(v===excludeValue) return;
+    if(seen[v]) return;
+    seen[v]=true;
+    uniq.push(v);
+  });
+  return uniq.slice(0,n);
+}
+function monsterColor(id){
+  var hue = (id*47)%360;
+  return "hsl("+hue+",68%,52%)";
+}
+function rubyName(name, yomi){
+  return '<ruby>'+name+'<rt>'+yomi+'</rt></ruby>';
+}
+
+/* =========================================================
+   4. クイズ生成
+========================================================= */
+var QUIZ_TYPES = ["capital","region","food","place","feature"];
+
+function buildQuizQuestion(pref, type){
+  var question, answer, wrongPool;
+  if(type==="capital"){
+    question = pref.name+"の県庁所在地はどこ？";
+    answer = pref.capital;
+    wrongPool = PREFS.filter(function(p){return p.id!==pref.id;}).map(function(p){return p.capital;});
+  } else if(type==="region"){
+    question = pref.name+"は何地方にある？";
+    answer = pref.region;
+    wrongPool = REGION_ORDER.filter(function(r){return r!==pref.region;});
+  } else if(type==="food"){
+    question = pref.name+"といえば、有名な食べ物は？";
+    answer = pref.food;
+    wrongPool = PREFS.filter(function(p){return p.id!==pref.id;}).map(function(p){return p.food;});
+  } else if(type==="place"){
+    question = pref.name+"の有名な観光地は？";
+    answer = pref.place;
+    wrongPool = PREFS.filter(function(p){return p.id!==pref.id;}).map(function(p){return p.place;});
+  } else {
+    question = pref.name+"の特徴として正しいのはどれ？";
+    answer = pref.feature;
+    wrongPool = PREFS.filter(function(p){return p.id!==pref.id;}).map(function(p){return p.feature;});
+  }
+  var wrongs = sampleUnique(wrongPool, 2, answer);
+  var choices = shuffle([answer].concat(wrongs));
+  return { type:type, question:question, answer:answer, choices:choices };
+}
+
+function randomQuizForPref(pref){
+  var type = pickRandom(QUIZ_TYPES);
+  return buildQuizQuestion(pref, type);
+}
+
+/* =========================================================
+   5. 画面管理
+========================================================= */
+var screens = ["title","howto","game","dex","regions","bossintro","boss","complete"];
+function showScreen(name){
+  screens.forEach(function(s){
+    document.getElementById("screen-"+s).classList.toggle("hidden", s!==name);
+  });
+  var statusbar = document.getElementById("statusbar");
+  statusbar.classList.toggle("hidden", name==="title" || name==="complete");
+  window.scrollTo(0,0);
+}
+
+function refreshStatusbar(){
+  document.getElementById("stat-score").textContent = state.score;
+  document.getElementById("stat-level").textContent = getLevel();
+  document.getElementById("stat-count").textContent = state.collected.length;
+  document.getElementById("title-progress").textContent =
+    state.collected.length>0 ? ("これまでに "+state.collected.length+" / 47 匹 GETしたよ！") : "";
+}
+
+/* =========================================================
+   6. クイズ進行
+========================================================= */
+var currentPref = null;
+var currentQuiz = null;
+var answered = false;
+
+function uncollectedPrefs(){
+  return PREFS.filter(function(p){ return state.collected.indexOf(p.id) === -1; });
+}
+function collectedInRegion(region){
+  return PREFS.filter(function(p){ return p.region===region; })
+    .every(function(p){ return state.collected.indexOf(p.id) !== -1; });
+}
+function pendingBossRegion(){
+  for(var i=0;i<REGION_ORDER.length;i++){
+    var r = REGION_ORDER[i];
+    if(collectedInRegion(r) && state.bossCleared.indexOf(r)===-1) return r;
+  }
+  return null;
+}
+function isFullyComplete(){
+  return state.collected.length===47 && state.bossCleared.length===7;
+}
+
+function startNextRound(){
+  if(isFullyComplete()){
+    showComplete();
+    return;
+  }
+  var pendingRegion = pendingBossRegion();
+  if(pendingRegion){
+    showBossIntro(pendingRegion);
+    return;
+  }
+  var remaining = uncollectedPrefs();
+  if(remaining.length===0){
+    // all collected but bosses not resolved (shouldn't normally hit, safety net)
+    showScreen("regions");
+    renderRegions();
+    return;
+  }
+  // たまに(約20%)すでにGET済みのモンスターが「もう一度」登場して復習できるようにする
+  var reviewChance = 0.2;
+  if(state.collected.length>0 && Math.random()<reviewChance){
+    var alreadyGot = state.collected.map(function(id){ return PREF_BY_ID[id]; });
+    currentPref = pickRandom(alreadyGot);
+  } else {
+    currentPref = pickRandom(remaining);
+  }
+  currentQuiz = randomQuizForPref(currentPref);
+  answered = false;
+  renderQuizScreen();
+  showScreen("game");
+}
+
+function renderQuizScreen(){
+  document.getElementById("quiz-region-chip").textContent = currentPref.region;
+  var emojiEl = document.getElementById("quiz-monster-emoji");
+  emojiEl.textContent = currentPref.emoji;
+  emojiEl.classList.remove("bounce");
+  emojiEl.classList.add("silhouette");
+  emojiEl.style.color = "";
+  document.getElementById("quiz-pref-tag").innerHTML = rubyName(currentPref.name, currentPref.yomi);
+  document.getElementById("quiz-monster-name").textContent = "？？？";
+  document.getElementById("quiz-question").textContent = currentQuiz.question;
+
+  var streak = state.streak;
+  document.getElementById("streak-indicator").textContent = "連続正解 "+streak;
+
+  var hintBox = document.getElementById("hint-box");
+  hintBox.classList.remove("show");
+  hintBox.textContent = "";
+
+  var lettersJP = ["A","B","C"];
+  var wrap = document.getElementById("quiz-choices");
+  wrap.innerHTML = "";
+  currentQuiz.choices.forEach(function(choice, idx){
+    var btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.innerHTML = '<span class="choice-letter">'+lettersJP[idx]+'</span><span>'+choice+'</span>';
+    btn.addEventListener("click", function(){ handleAnswer(choice, btn); });
+    wrap.appendChild(btn);
+  });
+}
+
+document.getElementById("btn-hint").addEventListener("click", function(){
+  var box = document.getElementById("hint-box");
+  if(!currentPref) return;
+  box.textContent = "💡 "+currentPref.hint;
+  box.classList.add("show");
+});
+
+function handleAnswer(choice, btnEl){
+  if(answered) return;
+  answered = true;
+  var correct = choice === currentQuiz.answer;
+  var buttons = document.querySelectorAll("#quiz-choices .choice-btn");
+  buttons.forEach(function(b){
+    b.disabled = true;
+    var txt = b.textContent.trim();
+    if(txt === currentQuiz.answer){
+      b.classList.add("correct");
+    } else if(b===btnEl && !correct){
+      b.classList.add("wrong");
+    } else {
+      b.classList.add("dim");
+    }
+  });
+
+  var emojiEl = document.getElementById("quiz-monster-emoji");
+
+  if(correct){
+    state.streak += 1;
+    if(state.streak > state.bestStreak) state.bestStreak = state.streak;
+    var earned = 10 + (state.streak-1)*2;
+    state.score += earned;
+
+    var alreadyHad = state.collected.indexOf(currentPref.id) !== -1;
+    if(!alreadyHad){
+      state.collected.push(currentPref.id);
+    }
+
+    var levelBefore = Math.floor((state.collected.length - (alreadyHad?0:1))/5)+1;
+    var levelAfter = getLevel();
+    var leveledUp = !alreadyHad && (levelAfter>levelBefore);
+
+    saveState();
+    refreshStatusbar();
+
+    emojiEl.classList.remove("silhouette");
+    emojiEl.style.color = monsterColor(currentPref.id);
+    emojiEl.classList.add("bounce");
+    document.getElementById("quiz-monster-name").textContent = currentPref.monster;
+
+    showResult({
+      correct:true,
+      earned:earned,
+      alreadyHad:alreadyHad,
+      leveledUp:leveledUp
+    });
+  } else {
+    state.streak = 0;
+    saveState();
+    refreshStatusbar();
+    showResult({ correct:false });
+  }
+}
+
+function showResult(info){
+  var card = document.getElementById("result-card");
+  var html = "";
+  if(info.correct){
+    html += '<div class="result-emoji">'+currentPref.emoji+'</div>';
+    html += '<div class="result-title ok">せいかい！</div>';
+    html += '<div class="result-sub">'+currentPref.monster+'をGET！</div>';
+    html += '<div class="score-pop">+'+info.earned+'ポイント</div>';
+    if(state.streak>=3 && state.streak%3===0){
+      html += '<div class="combo-banner">🔥 '+state.streak+'連続正解！</div>';
+    }
+    if(info.leveledUp){
+      html += '<div class="levelup-banner">✨ LEVEL UP！ Lv.'+getLevel()+'になった！</div>';
+    }
+    if(info.alreadyHad){
+      html += '<div class="result-msg">このモンスターとはもう友だちだよ！</div>';
+    } else {
+      html += '<div class="result-msg">図鑑に登録された！</div>';
+    }
+  } else {
+    html += '<div class="result-emoji">😯</div>';
+    html += '<div class="result-title ng">おしい！</div>';
+    html += '<div class="result-sub">正解は「'+currentQuiz.answer+'」だったよ</div>';
+    html += '<div class="result-msg">覚えて次は正解しよう！<br>'+currentPref.monster+'（'+currentPref.name+'）にはまた会えるよ。</div>';
+  }
+  html += '<button class="btn btn-primary btn-block" id="btn-result-next">つぎへ ▶</button>';
+  card.innerHTML = html;
+  document.getElementById("result-overlay").classList.remove("hidden");
+  document.getElementById("btn-result-next").addEventListener("click", function(){
+    document.getElementById("result-overlay").classList.add("hidden");
+    startNextRound();
+  });
+}
+
+/* =========================================================
+   7. 図鑑
+========================================================= */
+function renderDex(){
+  document.getElementById("dex-count-num").textContent = state.collected.length;
+  var content = document.getElementById("dex-content");
+  content.innerHTML = "";
+  REGION_ORDER.forEach(function(region){
+    var block = document.createElement("div");
+    block.className = "dex-region-block";
+    var title = document.createElement("div");
+    title.className = "dex-region-title";
+    title.textContent = region;
+    block.appendChild(title);
+
+    var grid = document.createElement("div");
+    grid.className = "dex-grid";
+    PREFS.filter(function(p){return p.region===region;}).forEach(function(p){
+      var got = state.collected.indexOf(p.id) !== -1;
+      var card = document.createElement("div");
+      card.className = "dex-card"+(got?"":" locked");
+      card.innerHTML = '<span class="dex-emoji">'+(got?p.emoji:"❓")+'</span>'+
+        '<span class="dex-label">'+(got?p.name:"？？？")+'</span>';
+      if(got){
+        card.addEventListener("click", function(){ showDexDetail(p); });
+      }
+      grid.appendChild(card);
+    });
+    block.appendChild(grid);
+    content.appendChild(block);
+  });
+}
+
+function showDexDetail(p){
+  var card = document.getElementById("dex-detail-card");
+  card.innerHTML =
+    '<div class="dex-detail-emoji" style="color:'+monsterColor(p.id)+'">'+p.emoji+'</div>'+
+    '<h2 style="margin:8px 0 0;">'+p.monster+'</h2>'+
+    '<div class="dex-detail-table">'+
+      '<div><span>都道府県</span><span>'+rubyName(p.name,p.yomi)+'</span></div>'+
+      '<div><span>地方</span><span>'+p.region+'</span></div>'+
+      '<div><span>県庁所在地</span><span>'+rubyName(p.capital,p.capitalYomi)+'</span></div>'+
+      '<div><span>有名な食べ物</span><span>'+p.food+'</span></div>'+
+      '<div><span>有名な観光地</span><span>'+p.place+'</span></div>'+
+      '<div><span>特徴</span><span>'+p.feature+'</span></div>'+
+    '</div>'+
+    '<button class="btn btn-secondary btn-block" style="margin-top:16px;" id="btn-dex-detail-close">とじる</button>';
+  document.getElementById("dex-detail-overlay").classList.remove("hidden");
+  document.getElementById("btn-dex-detail-close").addEventListener("click", function(){
+    document.getElementById("dex-detail-overlay").classList.add("hidden");
+  });
+}
+
+/* =========================================================
+   8. 地方・ボス一覧
+========================================================= */
+function renderRegions(){
+  var content = document.getElementById("regions-content");
+  content.innerHTML = "";
+  REGION_ORDER.forEach(function(region){
+    var prefsInRegion = PREFS.filter(function(p){return p.region===region;});
+    var gotCount = prefsInRegion.filter(function(p){return state.collected.indexOf(p.id)!==-1;}).length;
+    var total = prefsInRegion.length;
+    var boss = BOSS[region];
+    var cleared = state.bossCleared.indexOf(region) !== -1;
+    var eligible = gotCount===total && !cleared;
+
+    var card = document.createElement("div");
+    card.className = "region-card";
+    var pct = Math.round((gotCount/total)*100);
+    card.innerHTML =
+      '<div class="region-card-top">'+
+        '<div class="boss-emoji">'+boss.emoji+'</div>'+
+        '<div class="region-info">'+
+          '<div class="region-name">'+region+'</div>'+
+          '<div class="boss-name">ボス：'+boss.name+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="region-progress-bar"><div class="region-progress-fill" style="width:'+pct+'%"></div></div>'+
+      '<div class="region-progress-text"><span>モンスター '+gotCount+' / '+total+'</span><span>'+(cleared?"制覇ずみ":(eligible?"挑戦できる！":""))+'</span></div>'+
+      (cleared ? '<div class="badge-cleared">🏅 '+region+' 制覇！</div>' : '');
+    if(eligible){
+      var btn = document.createElement("button");
+      btn.className = "btn btn-primary btn-block";
+      btn.style.marginTop="10px";
+      btn.textContent = "⚔️ ボスに挑戦する";
+      btn.addEventListener("click", function(){ showBossIntro(region); });
+      card.appendChild(btn);
+    }
+    content.appendChild(card);
+  });
+}
+
+/* =========================================================
+   9. ボス戦
+========================================================= */
+var bossState = null;
+function showBossIntro(region){
+  var boss = BOSS[region];
+  document.getElementById("bossintro-emoji").textContent = boss.emoji;
+  document.getElementById("bossintro-text").textContent = region+"のモンスターを全部あつめたね！「"+boss.name+"」が立ちふさがる。"+boss.desc;
+  var fightBtn = document.getElementById("btn-boss-fight");
+  fightBtn.onclick = function(){ startBossBattle(region); };
+  showScreen("bossintro");
+}
+
+function startBossBattle(region){
+  var prefsInRegion = shuffle(PREFS.filter(function(p){return p.region===region;}));
+  var chosen = prefsInRegion.slice(0, Math.min(3, prefsInRegion.length));
+  while(chosen.length<3){ chosen.push(pickRandom(prefsInRegion)); }
+  var questions = chosen.map(function(p){ return { pref:p, quiz: randomQuizForPref(p) }; });
+  bossState = { region:region, boss:BOSS[region], questions:questions, index:0, correctCount:0, answered:false };
+  showScreen("boss");
+  renderBossQuestion();
+}
+
+function renderBossHp(){
+  var wrap = document.getElementById("boss-hp");
+  wrap.innerHTML = "";
+  for(var i=0;i<3;i++){
+    var pip = document.createElement("div");
+    pip.className = "pip"+(i<bossState.correctCount ? " on":"");
+    wrap.appendChild(pip);
+  }
+}
+
+function renderBossQuestion(){
+  document.getElementById("boss-emoji").textContent = bossState.boss.emoji;
+  document.getElementById("boss-name").textContent = bossState.boss.name+"（"+(bossState.index+1)+"/3問目）";
+  renderBossHp();
+  bossState.answered = false;
+  var q = bossState.questions[bossState.index].quiz;
+  document.getElementById("boss-question").textContent = q.question;
+  var lettersJP = ["A","B","C"];
+  var wrap = document.getElementById("boss-choices");
+  wrap.innerHTML = "";
+  q.choices.forEach(function(choice, idx){
+    var btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.innerHTML = '<span class="choice-letter">'+lettersJP[idx]+'</span><span>'+choice+'</span>';
+    btn.addEventListener("click", function(){ handleBossAnswer(choice, btn); });
+    wrap.appendChild(btn);
+  });
+}
+
+function handleBossAnswer(choice, btnEl){
+  if(bossState.answered) return;
+  bossState.answered = true;
+  var q = bossState.questions[bossState.index].quiz;
+  var correct = choice === q.answer;
+  var buttons = document.querySelectorAll("#boss-choices .choice-btn");
+  buttons.forEach(function(b){
+    b.disabled = true;
+    var txt = b.textContent.trim();
+    if(txt===q.answer) b.classList.add("correct");
+    else if(b===btnEl && !correct) b.classList.add("wrong");
+    else b.classList.add("dim");
+  });
+  if(correct) bossState.correctCount++;
+
+  setTimeout(function(){
+    if(bossState.index < 2){
+      bossState.index++;
+      renderBossQuestion();
+    } else {
+      finishBossBattle();
+    }
+  }, 900);
+}
+
+function finishBossBattle(){
+  var win = bossState.correctCount >= 2;
+  var region = bossState.region;
+  if(win && state.bossCleared.indexOf(region)===-1){
+    state.bossCleared.push(region);
+    saveState();
+  }
+  refreshStatusbar();
+
+  var card = document.getElementById("result-card");
+  var html = "";
+  if(win){
+    html += '<div class="result-emoji">'+bossState.boss.emoji+'</div>';
+    html += '<div class="result-title ok">ボス撃破！</div>';
+    html += '<div class="badge-cleared" style="margin:10px auto;">🏅 '+region+' 制覇！</div>';
+    html += '<div class="result-msg">'+bossState.correctCount+'/3問正解でボスをたおした！</div>';
+  } else {
+    html += '<div class="result-emoji">💦</div>';
+    html += '<div class="result-title ng">おしい！</div>';
+    html += '<div class="result-msg">'+bossState.correctCount+'/3問正解…ボスにはにげられてしまった。<br>また挑戦しよう！（🗾地方ボス画面からいつでも再挑戦できるよ）</div>';
+  }
+  html += '<button class="btn btn-primary btn-block" id="btn-boss-result-next">つぎへ ▶</button>';
+  card.innerHTML = html;
+  document.getElementById("result-overlay").classList.remove("hidden");
+  document.getElementById("btn-boss-result-next").addEventListener("click", function(){
+    document.getElementById("result-overlay").classList.add("hidden");
+    startNextRound();
+  });
+}
+
+/* =========================================================
+   10. 全国制覇
+========================================================= */
+function showComplete(){
+  showScreen("complete");
+  launchConfetti();
+}
+function launchConfetti(){
+  var colors = ["#ff8f3c","#3ccf8f","#3c9cff","#ffd257","#ff5c6c","#c084fc"];
+  for(var i=0;i<60;i++){
+    (function(){
+      var piece = document.createElement("div");
+      piece.className = "confetti-piece";
+      piece.style.left = (Math.random()*100)+"vw";
+      piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+      piece.style.animationDuration = (2.2+Math.random()*2)+"s";
+      piece.style.animationDelay = (Math.random()*1.2)+"s";
+      document.body.appendChild(piece);
+      setTimeout(function(){ piece.remove(); }, 6000);
+    })();
+  }
+}
+
+/* =========================================================
+   11. イベント登録
+========================================================= */
+document.getElementById("btn-start").addEventListener("click", function(){
+  startNextRound();
+});
+document.getElementById("btn-open-dex").addEventListener("click", function(){
+  renderDex(); showScreen("dex");
+});
+document.getElementById("btn-open-howto").addEventListener("click", function(){
+  showScreen("howto");
+});
+document.getElementById("btn-howto-back").addEventListener("click", function(){
+  showScreen("title");
+});
+document.getElementById("btn-dex-back").addEventListener("click", function(){
+  showScreen(uncollectedPrefs().length===0 && !pendingBossRegion() ? "title" : "title");
+});
+document.getElementById("btn-regions-back").addEventListener("click", function(){
+  showScreen("title");
+});
+document.getElementById("nav-home").addEventListener("click", function(){
+  showScreen("title");
+});
+document.getElementById("nav-dex").addEventListener("click", function(){
+  renderDex(); showScreen("dex");
+});
+document.getElementById("nav-regions").addEventListener("click", function(){
+  renderRegions(); showScreen("regions");
+});
+document.getElementById("btn-complete-dex").addEventListener("click", function(){
+  renderDex(); showScreen("dex");
+});
+document.getElementById("btn-complete-home").addEventListener("click", function(){
+  showScreen("title");
+});
+document.getElementById("btn-reset").addEventListener("click", function(){
+  if(confirm("本当にデータを消しますか？\n集めたモンスターやスコアが全部なくなるよ。")){
+    state = defaultState();
+    saveState();
+    refreshStatusbar();
+    showScreen("title");
+  }
+});
+document.getElementById("dex-detail-overlay").addEventListener("click", function(e){
+  if(e.target.id === "dex-detail-overlay"){
+    document.getElementById("dex-detail-overlay").classList.add("hidden");
+  }
+});
+
+/* =========================================================
+   12. 初期化
+========================================================= */
+function init(){
+  state = loadState();
+  refreshStatusbar();
+  showScreen("title");
+}
+init();
+
+})();
+</script>
+</body>
+</html>
