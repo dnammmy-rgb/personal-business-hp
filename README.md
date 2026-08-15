@@ -57,31 +57,20 @@ VS Codeを使っている場合は「Live Server」拡張機能でも確認で�
 | ご依頼の流れ | `#flow` 内 `.flow__step` |
 | よくある質問 | `#faq` 内 `.faq__item`（`<details><summary>`構造） |
 | 最終CTAの文言 | `#final-cta` |
-| フォーム項目 | `#contact` 内 `.contact__form` |
+| Googleフォームのリンク先 | `#contact` 内 `.contact__panel` の `<a>` の `href`（`docs.google.com/forms/...`） |
 | 会社名・ロゴ表記 | `.header__logo` / `.footer__logo` |
 | 連絡先（メール・LINE） | `#contact` 内 `.contact__alt`、`mailto:info@example.com` を実際のアドレスに置換 |
 | 配色 | `css/style.css` 冒頭の `:root { ... }` の変数（`--accent`など） |
 
-## 4. お問い合わせフォームを本番運用する場合の選択肢
+## 4. お問い合わせフォームについて
 
-現在のフォームは仮実装で、送信すると確認アラートが出るのみで実際には送信されません（`js/main.js`参照）。
-本番運用時は以下のいずれかに差し替えてください。
+`#contact` セクションはGoogleフォームへの案内パネル（`.contact__panel`）になっています。
+「Googleフォームで相談する」ボタンから、別タブでGoogleフォームが開く仕組みです（実際に送信され、回答はGoogle側のスプレッドシートに蓄積されます）。
 
-### 選択肢A: Googleフォームに置き換える（最も手軽・無料）
-1. Googleフォームで同じ項目（お名前・会社名・メール・電話番号・相談内容・希望サポート・開始時期・予算感・その他）を作成
-2. 作成したGoogleフォームのURLを `#contact` セクション内に埋め込み、またはボタンリンクに差し替え
-3. `index.html` の `<form id="contact-form">` ブロックを、Googleフォームの `<iframe>` 埋め込みタグに置換
+フォームのリンク先を変更したい場合は、`index.html` 内 `.contact__panel` の `<a href="https://docs.google.com/forms/...">` を書き換えてください。
 
-### 選択肢B: フォーム送信サービス（Formspree, GetForm等）を使う
-1. [Formspree](https://formspree.io) 等に登録し、エンドポイントURLを取得
-2. `index.html` の `<form action="#" method="POST">` の `action` を発行されたエンドポイントURLに変更
-3. `js/main.js` の仮送信処理（`e.preventDefault()`とalert部分）を削除し、通常送信またはfetch送信に変更
-4. 無料プランでも月間送信数の上限内であれば十分運用可能
-
-### 選択肢C: 自前のサーバーサイド処理を用意する
-1. PHPやNode.js等でフォーム送信 → メール送信（例: PHPMailer, Nodemailer）のAPIを実装
-2. `action` にそのAPIのURLを指定
-3. スパム対策として reCAPTCHA や ハニーポット項目の追加を推奨
+他のフォーム手段（Formspreeなどの送信サービスや、自前のサーバーサイド処理）に変更したい場合は、
+同じ `.contact__panel` 内のボタンの `href`／リンク先をそのサービスのURLに差し替えるだけで移行できます。
 
 ## 5. 公開方法の候補
 

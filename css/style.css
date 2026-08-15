@@ -644,48 +644,28 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
 /* ---------- 16. Contact Form ---------- */
 .contact__grid {
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
-  gap: 40px;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
   align-items: start;
+  max-width: 880px;
+  margin: 0 auto;
 }
-.contact__form {
+.contact__panel {
   background: var(--bg-surface);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-lg);
-  padding: 40px;
+  padding: 40px 34px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
 }
-.form-row { display: flex; flex-direction: column; gap: 8px; }
-.form-row label { font-size: 0.9rem; font-weight: 700; color: var(--text-heading); }
-.form-row .required {
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: var(--accent-dark);
-  padding: 1px 7px;
-  border: 1px solid var(--accent-soft);
-  border-radius: 999px;
-  margin-left: 6px;
-}
-.form-row input,
-.form-row select,
-.form-row textarea {
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  background: var(--bg-base);
-  color: var(--text-main);
-  resize: vertical;
-}
-.form-row input:focus,
-.form-row select:focus,
-.form-row textarea:focus {
-  outline: none;
-  border-color: var(--accent);
-  background: #fff;
-}
-.contact__form-note { font-size: 0.78rem; color: var(--text-sub); text-align: center; }
+.contact__panel-icon { width: 32px; height: 32px; stroke: var(--gold-dark); margin-bottom: 2px; }
+.contact__panel h3 { font-size: 1.05rem; }
+.contact__panel p { font-size: 0.9rem; color: var(--text-sub); line-height: 1.85; }
+.contact__panel .btn { margin-top: 8px; }
+.contact__panel-note { font-size: 0.78rem; color: var(--text-sub); }
 
 .contact__alt {
   background: var(--bg-alt);
@@ -756,7 +736,7 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
   .card--plan { border-left: none !important; border-top: 1px solid var(--border-soft); }
   .card--plan:first-child { border-top: none; }
   .work-item { grid-template-columns: 1fr; gap: 6px; }
-  .contact__form { padding: 28px 20px; }
+  .contact__panel { padding: 30px 22px; }
   .float-cta { display: block; }
   body { padding-bottom: 70px; }
   .hero__cta-group { flex-direction: column; }

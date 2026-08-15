@@ -467,66 +467,13 @@
       </p>
 
       <div class="contact__grid">
-        <form class="contact__form" id="contact-form" action="#" method="POST">
-          <!--
-            本番運用時は以下のいずれかに差し替えてください：
-            1) Googleフォームの埋め込み・リンクに置き換え
-            2) Formspree / GetForm 等のフォーム送信サービスのendpointをaction属性に指定
-            3) 独自のサーバーサイド処理（PHP, Node等）のエンドポイントを指定
-            詳細は README.md を参照してください。
-          -->
-          <div class="form-row">
-            <label for="name">お名前 <span class="required">必須</span></label>
-            <input type="text" id="name" name="name" required autocomplete="name">
-          </div>
-          <div class="form-row">
-            <label for="company">会社名／屋号</label>
-            <input type="text" id="company" name="company" autocomplete="organization">
-          </div>
-          <div class="form-row">
-            <label for="email">メールアドレス <span class="required">必須</span></label>
-            <input type="email" id="email" name="email" required autocomplete="email">
-          </div>
-          <div class="form-row">
-            <label for="tel">電話番号</label>
-            <input type="tel" id="tel" name="tel" autocomplete="tel">
-          </div>
-          <div class="form-row">
-            <label for="content">相談したい内容 <span class="required">必須</span></label>
-            <textarea id="content" name="content" rows="4" required placeholder="例：営業リストの作成と反響管理をお願いしたい／何を頼めばいいか分からないので相談したい　等"></textarea>
-          </div>
-          <div class="form-row">
-            <label for="support">希望するサポート内容</label>
-            <select id="support" name="support">
-              <option value="">選択してください</option>
-              <option value="office">事務代行（メール対応・日程調整・請求書 等）</option>
-              <option value="secretary">秘書・右腕業務</option>
-              <option value="sales">営業まわりの実務サポート（リスト作成・反響管理・日程調整 等）</option>
-              <option value="mix">事務と営業まわり、両方まとめて</option>
-              <option value="unknown">まだ分からない・相談しながら決めたい</option>
-            </select>
-          </div>
-          <div class="form-row">
-            <label for="start">希望開始時期</label>
-            <select id="start" name="start">
-              <option value="">選択してください</option>
-              <option value="asap">できるだけ早く</option>
-              <option value="1m">1ヶ月以内</option>
-              <option value="3m">3ヶ月以内</option>
-              <option value="undecided">未定</option>
-            </select>
-          </div>
-          <div class="form-row">
-            <label for="budget">予算感</label>
-            <input type="text" id="budget" name="budget" placeholder="例：月3万円程度／単発1万円程度／相談しながら決めたい">
-          </div>
-          <div class="form-row">
-            <label for="other">その他・ご要望</label>
-            <textarea id="other" name="other" rows="3"></textarea>
-          </div>
-          <button type="submit" class="btn btn--primary btn--large btn--full">この内容で見積依頼・相談を送信する</button>
-          <p class="contact__form-note">送信いただいた内容は、ご相談・お見積りの目的以外には使用いたしません。</p>
-        </form>
+        <div class="contact__panel">
+          <svg class="icon contact__panel-icon"><use href="#icon-file"/></svg>
+          <h3>お見積り・ご相談フォーム</h3>
+          <p>お名前・ご相談内容・希望するサポート内容などをご記入いただくフォームです。所要時間は3〜5分程度です。</p>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSd-5y-3Qj7DpmrSIKxinbSucl3NNNXSTC5Xo5AyybiRIiAlSg/viewform" target="_blank" rel="noopener" class="btn btn--primary btn--large btn--full">Googleフォームで相談する</a>
+          <p class="contact__panel-note">フォームは別タブで開きます。内容が固まっていない場合は、その旨をご記入いただければ大丈夫です。</p>
+        </div>
 
         <div class="contact__alt">
           <h3>フォーム以外でのご相談も歓迎です</h3>
