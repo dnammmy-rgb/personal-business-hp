@@ -59,8 +59,9 @@ VS Codeを使っている場合は「Live Server」拡張機能でも確認で�
 | 最終CTAの文言 | `#final-cta` |
 | Googleフォームのリンク先 | `#contact` 内 `.contact__panel` の `<a>` の `href`（`docs.google.com/forms/...`） |
 | 会社名・ロゴ表記 | `.header__logo` / `.footer__logo` |
-| 連絡先（メール・LINE） | `#contact` 内 `.contact__alt`、`mailto:info@example.com` を実際のアドレスに置換 |
 | 配色 | `css/style.css` 冒頭の `:root { ... }` の変数（`--accent`など） |
+
+※ 現在、連絡先はGoogleフォーム経由のみとしています（いたずら防止のため、メールアドレス・LINEは非公開）。再度掲載したい場合は `#contact` セクションに `<a>` タグを追加してください。
 
 ## 4. お問い合わせフォームについて
 

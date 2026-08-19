@@ -60,9 +60,6 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
   --gold-dark: #92794A;
   --gold-soft: #EFE7D8;
 
-  --line-green: #5B8A6E;
-  --line-green-soft: #E4EBE2;
-
   /* ヒーロー背景画像。差し替える場合はファイル名を変更するか、このパスを書き換えてください */
   --hero-bg-image: url("../assets/images/hero-bg.webp");
 
@@ -110,18 +107,6 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
   border-color: var(--border-soft);
 }
 .btn--outline:hover { border-color: var(--accent); background: var(--accent-soft); }
-.btn--line {
-  background: var(--bg-surface);
-  color: var(--line-green);
-  border-color: var(--border-soft);
-}
-.btn--line:hover { border-color: var(--line-green); background: var(--line-green-soft); }
-.final-cta .btn--line {
-  background: transparent;
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.5);
-}
-.final-cta .btn--line:hover { background: rgba(255, 255, 255, 0.12); }
 .btn--large { padding: 17px 40px; font-size: 1.02rem; }
 .btn--small { padding: 9px 22px; font-size: 0.85rem; }
 .btn--full { width: 100%; }
@@ -642,19 +627,13 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
 .final-cta .btn--primary:hover { background: #f3e9ec; }
 
 /* ---------- 16. Contact Form ---------- */
-.contact__grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
-  align-items: start;
-  max-width: 880px;
-  margin: 0 auto;
-}
 .contact__panel {
   background: var(--bg-surface);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-lg);
-  padding: 40px 34px;
+  padding: 44px 40px;
+  max-width: 480px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -666,20 +645,6 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
 .contact__panel p { font-size: 0.9rem; color: var(--text-sub); line-height: 1.85; }
 .contact__panel .btn { margin-top: 8px; }
 .contact__panel-note { font-size: 0.78rem; color: var(--text-sub); }
-
-.contact__alt {
-  background: var(--bg-alt);
-  border-radius: var(--radius-lg);
-  padding: 34px 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  position: sticky;
-  top: 90px;
-}
-.contact__alt h3 { font-size: 1.02rem; margin-bottom: 6px; }
-.contact__alt-note { font-size: 0.8rem; color: var(--text-sub); margin-top: 8px; }
-.contact__alt-note a { color: var(--accent-dark); text-decoration: underline; }
 
 /* ---------- 17. Footer / Float CTA ---------- */
 .footer { background: var(--text-heading); color: #E9E1D8; padding: 46px 0 26px; }
@@ -719,8 +684,6 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
   .header__nav { display: none; }
   .header__menu-btn { display: flex; }
   .header__cta { display: none; }
-  .contact__grid { grid-template-columns: 1fr; }
-  .contact__alt { position: static; }
 }
 
 @media (max-width: 768px) {
