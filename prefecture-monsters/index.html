@@ -466,6 +466,69 @@
   .dex-detail-table span:first-child{color:var(--ink-soft); font-weight:700; flex-shrink:0;}
   .dex-detail-table span:last-child{text-align:right;}
 
+  /* ===== Japan map (region-shaped grid) ===== */
+  .japan-map-legend{
+    display:flex;
+    gap:16px;
+    justify-content:center;
+    font-size:.78rem;
+    color:var(--ink-soft);
+    margin-bottom:12px;
+    font-weight:700;
+  }
+  .japan-map-legend span{display:flex; align-items:center; gap:6px;}
+  .legend-dot{width:12px; height:12px; border-radius:50%; display:inline-block;}
+  .legend-dot-got{background:var(--accent2);}
+  .legend-dot-not{background:#d8d3f0;}
+  .japan-map{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:8px;
+  }
+  .map-region{
+    border-radius:14px;
+    padding:8px 6px;
+    background:var(--panel-soft);
+    border:2px solid #e7e2fb;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    min-height:64px;
+  }
+  .map-region-title{
+    font-size:.68rem;
+    font-weight:900;
+    color:var(--ink-soft);
+    text-align:center;
+    line-height:1.3;
+  }
+  .map-region-chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:3px;
+    justify-content:center;
+    align-content:flex-start;
+  }
+  .map-chip{
+    font-size:.6rem;
+    padding:2px 5px;
+    border-radius:999px;
+    background:#e7e4f2;
+    color:#948dbf;
+    font-weight:700;
+    white-space:nowrap;
+    line-height:1.6;
+  }
+  .map-chip.got{
+    background:var(--accent2);
+    color:#fff;
+    cursor:pointer;
+  }
+  @media (max-width:520px){
+    .japan-map{grid-template-columns:repeat(2,1fr);}
+    .map-region{grid-column:auto !important; grid-row:auto !important;}
+  }
+
   /* ===== Region / boss screen ===== */
   .region-card{
     background:#fff;
@@ -674,6 +737,13 @@
     <!-- ============ REGIONS / BOSS LIST ============ -->
     <section id="screen-regions" class="hidden">
       <h2 class="section-title">🗾 日本地図・地方ボス</h2>
+      <div class="panel">
+        <div class="japan-map-legend">
+          <span><i class="legend-dot legend-dot-got"></i>GETした県</span>
+          <span><i class="legend-dot legend-dot-not"></i>まだの県</span>
+        </div>
+        <div id="japan-map" class="japan-map"></div>
+      </div>
       <div id="regions-content"></div>
       <button class="btn btn-secondary btn-block" id="btn-regions-back">もどる</button>
       <div class="panel panel-soft" style="margin-top:18px; text-align:center;">
@@ -711,7 +781,9 @@
       <h2>君は都道府県マスター！</h2>
       <p style="opacity:.85;">47都道府県 × 7地方ボス、すべて制覇したよ！</p>
       <div class="title-buttons" style="margin-top:24px;">
+        <button class="btn btn-primary" id="btn-complete-continue">🔁 もっと遊ぶ（復習クイズ）</button>
         <button class="btn btn-secondary" id="btn-complete-dex">📖 図鑑を見る</button>
+        <button class="btn btn-secondary" id="btn-complete-map">🗾 日本地図を見る</button>
         <button class="btn btn-secondary" id="btn-complete-home">🏠 タイトルへ</button>
       </div>
     </section>
@@ -816,7 +888,7 @@ var STORAGE_KEY = "pref-monsters-save-v1";
 var state = null;
 
 function defaultState(){
-  return { collected:[], score:0, streak:0, bestStreak:0, bossCleared:[] };
+  return { collected:[], score:0, streak:0, bestStreak:0, bossCleared:[], seenComplete:false };
 }
 function loadState(){
   try{
@@ -828,7 +900,8 @@ function loadState(){
       score: typeof parsed.score === "number" ? parsed.score : 0,
       streak: typeof parsed.streak === "number" ? parsed.streak : 0,
       bestStreak: typeof parsed.bestStreak === "number" ? parsed.bestStreak : 0,
-      bossCleared: Array.isArray(parsed.bossCleared) ? parsed.bossCleared : []
+      bossCleared: Array.isArray(parsed.bossCleared) ? parsed.bossCleared : [],
+      seenComplete: !!parsed.seenComplete
     };
   }catch(e){
     return defaultState();
@@ -962,7 +1035,9 @@ function isFullyComplete(){
 }
 
 function startNextRound(){
-  if(isFullyComplete()){
+  if(isFullyComplete() && !state.seenComplete){
+    state.seenComplete = true;
+    saveState();
     showComplete();
     return;
   }
@@ -972,10 +1047,13 @@ function startNextRound(){
     return;
   }
   var remaining = uncollectedPrefs();
+  // 全部集め終わったあとは、ずっと復習クイズで遊べるようにする
   if(remaining.length===0){
-    // all collected but bosses not resolved (shouldn't normally hit, safety net)
-    showScreen("regions");
-    renderRegions();
+    currentPref = pickRandom(PREFS);
+    currentQuiz = randomQuizForPref(currentPref);
+    answered = false;
+    renderQuizScreen();
+    showScreen("game");
     return;
   }
   // たまに(約20%)すでにGET済みのモンスターが「もう一度」登場して復習できるようにする
@@ -1175,7 +1253,51 @@ function showDexDetail(p){
 /* =========================================================
    8. 地方・ボス一覧
 ========================================================= */
+// 日本のだいたいの形になるように、地方を5列×5行のマスに配置する
+var MAP_LAYOUT = {
+  "北海道・東北":  { col:"5 / 6", row:"1 / 3" },
+  "関東":         { col:"5 / 6", row:"3 / 4" },
+  "中部":         { col:"4 / 5", row:"3 / 4" },
+  "近畿":         { col:"3 / 4", row:"4 / 5" },
+  "中国":         { col:"2 / 3", row:"4 / 5" },
+  "四国":         { col:"2 / 3", row:"5 / 6" },
+  "九州・沖縄":    { col:"1 / 2", row:"5 / 6" }
+};
+
+function renderJapanMap(){
+  var map = document.getElementById("japan-map");
+  map.innerHTML = "";
+  REGION_ORDER.forEach(function(region){
+    var layout = MAP_LAYOUT[region];
+    var block = document.createElement("div");
+    block.className = "map-region";
+    block.style.gridColumn = layout.col;
+    block.style.gridRow = layout.row;
+
+    var title = document.createElement("div");
+    title.className = "map-region-title";
+    title.textContent = region;
+    block.appendChild(title);
+
+    var chips = document.createElement("div");
+    chips.className = "map-region-chips";
+    PREFS.filter(function(p){ return p.region===region; }).forEach(function(p){
+      var got = state.collected.indexOf(p.id) !== -1;
+      var chip = document.createElement("span");
+      chip.className = "map-chip"+(got?" got":"");
+      chip.textContent = got ? p.name.replace(/[都道府県]$/,"") : "？？";
+      if(got){
+        chip.addEventListener("click", function(){ showDexDetail(p); });
+      }
+      chips.appendChild(chip);
+    });
+    block.appendChild(chips);
+    map.appendChild(block);
+  });
+}
+
 function renderRegions(){
+  renderJapanMap();
   var content = document.getElementById("regions-content");
   content.innerHTML = "";
   REGION_ORDER.forEach(function(region){
@@ -1372,8 +1494,14 @@ document.getElementById("nav-dex").addEventListener("click", function(){
 document.getElementById("nav-regions").addEventListener("click", function(){
   renderRegions(); showScreen("regions");
 });
+document.getElementById("btn-complete-continue").addEventListener("click", function(){
+  startNextRound();
+});
 document.getElementById("btn-complete-dex").addEventListener("click", function(){
   renderDex(); showScreen("dex");
+});
+document.getElementById("btn-complete-map").addEventListener("click", function(){
+  renderRegions(); showScreen("regions");
 });
 document.getElementById("btn-complete-home").addEventListener("click", function(){
   showScreen("title");
