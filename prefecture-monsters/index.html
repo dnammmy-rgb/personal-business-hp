@@ -1261,6 +1261,39 @@ function playCorrectSound(){
   playTone(ctx, 880, now, 0.12, "triangle");        // A5
   playTone(ctx, 1174.66, now + 0.1, 0.2, "triangle"); // D6
 }
+function playFanfareSound(){
+  var ctx = getAudioCtx();
+  if(!ctx) return;
+  if(ctx.state === "suspended"){ ctx.resume(); }
+  var now = ctx.currentTime;
+
+  // クラッカーの「パンッ！」という破裂音（減衰するホワイトノイズ）
+  var bufferSize = Math.floor(ctx.sampleRate * 0.15);
+  var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  var data = buffer.getChannelData(0);
+  for(var i=0;i<bufferSize;i++){
+    data[i] = (Math.random()*2-1) * Math.pow(1 - i/bufferSize, 3);
+  }
+  var noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+  var noiseFilter = ctx.createBiquadFilter();
+  noiseFilter.type = "highpass";
+  noiseFilter.frequency.value = 800;
+  var noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.5, now);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+  noise.connect(noiseFilter);
+  noiseFilter.connect(noiseGain);
+  noiseGain.connect(ctx.destination);
+  noise.start(now);
+  noise.stop(now + 0.15);
+
+  // 続けてキラキラ上昇するお祝いのファンファーレ
+  var notes = [523.25, 659.25, 783.99, 1046.5, 1318.51]; // C5 E5 G5 C6 E6
+  notes.forEach(function(freq, idx){
+    playTone(ctx, freq, now + 0.12 + idx*0.09, 0.25, "triangle");
+  });
+}
 
 function shuffle(arr){
   var a = arr.slice();
@@ -1831,6 +1864,7 @@ function finishBossBattle(){
 function showComplete(){
   showScreen("complete");
   launchConfetti();
+  playFanfareSound();
 }
 function launchConfetti(){
   var colors = ["#ff8f3c","#3ccf8f","#3c9cff","#ffd257","#ff5c6c","#c084fc"];
