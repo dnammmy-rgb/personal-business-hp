@@ -527,6 +527,47 @@
     opacity:.65;
     margin-top:6px;
   }
+  .world-map-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+  }
+  @media (max-width:420px){
+    .world-map-grid{grid-template-columns:1fr;}
+  }
+  .world-region-block{
+    border-radius:14px;
+    padding:10px 8px;
+    background:var(--panel-soft);
+    border:2px solid #e7e2fb;
+  }
+  .world-region-title{
+    font-size:.78rem;
+    font-weight:900;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+    text-align:center;
+  }
+  .world-chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:5px;
+    justify-content:center;
+  }
+  .world-chip{
+    font-size:.68rem;
+    padding:4px 8px;
+    border-radius:999px;
+    background:#e7e4f2;
+    color:#948dbf;
+    font-weight:700;
+    white-space:nowrap;
+  }
+  .world-chip.got{
+    background:var(--accent2);
+    color:#fff;
+    cursor:pointer;
+  }
 
   /* ===== Region / boss screen ===== */
   .region-card{
@@ -691,7 +732,7 @@
   <div id="statusbar" class="hidden">
     <div class="stat">⭐ <b id="stat-score">0</b></div>
     <div class="stat">Lv.<b id="stat-level">1</b></div>
-    <div class="stat">📖 <b id="stat-count">0</b>/47</div>
+    <div class="stat">📖 <b id="stat-count">0</b>/<span id="stat-total">47</span></div>
     <div id="navbtns">
       <button id="nav-home" title="タイトルへ">🏠</button>
       <button id="nav-dex" title="モンスター図鑑">📖</button>
@@ -704,15 +745,16 @@
     <!-- ============ TITLE ============ -->
     <section id="screen-title">
       <div class="title-badge">小学生の自由研究にもぴったり！</div>
-      <div class="title-monsters">
+      <div class="title-monsters" id="title-monsters">
         <span>🐻‍❄️</span><span>🍎</span><span>🐙</span><span>🦁</span><span>🍑</span>
       </div>
-      <h1 class="game-title">都道府県モンスターズ<br><span class="accent">〜47都道府県を集めて全国制覇！〜</span></h1>
+      <h1 class="game-title"><span id="title-name-span"></span><br><span class="accent" id="title-sub-span"></span></h1>
       <p class="sub">クイズに答えてモンスターをGETしよう！</p>
       <div class="title-buttons">
         <button class="btn btn-primary" id="btn-start">🚀 冒険をはじめる</button>
         <button class="btn btn-secondary" id="btn-open-dex">📖 モンスター図鑑</button>
         <button class="btn btn-secondary" id="btn-open-howto">❓ 遊び方</button>
+        <button class="btn btn-secondary" id="btn-switch-mode"></button>
       </div>
       <div class="title-progress" id="title-progress"></div>
     </section>
@@ -755,8 +797,8 @@
     <!-- ============ DEX ============ -->
     <section id="screen-dex" class="hidden">
       <div class="dex-header">
-        <h2 class="section-title" style="margin:0;">📖 モンスター図鑑</h2>
-        <div class="dex-count"><span id="dex-count-num">0</span> / 47 GET！</div>
+        <h2 class="section-title" style="margin:0;" id="dex-title-h2">📖 モンスター図鑑</h2>
+        <div class="dex-count"><span id="dex-count-num">0</span> / <span id="dex-count-total">47</span> GET！</div>
       </div>
       <div id="dex-content"></div>
       <button class="btn btn-secondary btn-block" id="btn-dex-back">もどる</button>
@@ -764,8 +806,8 @@
 
     <!-- ============ REGIONS / BOSS LIST ============ -->
     <section id="screen-regions" class="hidden">
-      <h2 class="section-title">🗾 日本地図・地方ボス</h2>
-      <div class="panel">
+      <h2 class="section-title" id="map-title-h2">🗾 日本地図・地方ボス</h2>
+      <div class="panel" id="japan-map-panel">
         <div class="japan-map-legend">
           <span><i class="legend-dot legend-dot-got"></i>GETした県</span>
           <span><i class="legend-dot legend-dot-not"></i>まだの県</span>
@@ -1052,6 +1094,13 @@
         </div>
         <div class="japan-map-credit">地図: Geolonia（Wikipedia「日本地図.svg」をもとに作成 / GFDL）</div>
       </div>
+      <div class="panel hidden" id="world-map-panel">
+        <div class="japan-map-legend">
+          <span><i class="legend-dot legend-dot-got"></i>GETした国</span>
+          <span><i class="legend-dot legend-dot-not"></i>まだの国</span>
+        </div>
+        <div id="world-map" class="world-map-grid"></div>
+      </div>
       <div id="regions-content"></div>
       <button class="btn btn-secondary btn-block" id="btn-regions-back">もどる</button>
       <div class="panel panel-soft" style="margin-top:18px; text-align:center;">
@@ -1063,7 +1112,7 @@
     <section id="screen-bossintro" class="hidden">
       <div class="boss-hero">
         <span class="boss-big-emoji" id="bossintro-emoji">👹</span>
-        <h2 style="margin-top:10px;">地方ボスがあらわれた！</h2>
+        <h2 style="margin-top:10px;" id="bossintro-h2">地方ボスがあらわれた！</h2>
         <p id="bossintro-text" style="opacity:.85;"></p>
       </div>
       <button class="btn btn-primary btn-block" id="btn-boss-fight">⚔️ ボスにいどむ！</button>
@@ -1088,14 +1137,15 @@
 
     <!-- ============ COMPLETE ============ -->
     <section id="screen-complete" class="hidden">
-      <div class="complete-title">全国制覇！！</div>
+      <div class="complete-title" id="complete-title-div">全国制覇！！</div>
       <div style="font-size:4rem;">🏆</div>
-      <h2>君は都道府県マスター！</h2>
-      <p style="opacity:.85;">47都道府県 × 7地方ボス、すべて制覇したよ！</p>
+      <h2 id="complete-master-h2">君は都道府県マスター！</h2>
+      <p style="opacity:.85;" id="complete-sub-p">47都道府県 × 7地方ボス、すべて制覇したよ！</p>
       <div class="title-buttons" style="margin-top:24px;">
         <button class="btn btn-primary" id="btn-complete-continue">🔁 もっと遊ぶ（復習クイズ）</button>
+        <button class="btn btn-secondary" id="btn-complete-switch-mode"></button>
         <button class="btn btn-secondary" id="btn-complete-dex">📖 図鑑を見る</button>
-        <button class="btn btn-secondary" id="btn-complete-map">🗾 日本地図を見る</button>
+        <button class="btn btn-secondary" id="btn-complete-map">🗾 地図を見る</button>
         <button class="btn btn-secondary" id="btn-complete-home">🏠 タイトルへ</button>
       </div>
     </section>
@@ -1173,17 +1223,15 @@ var RAW = [
 [47,"沖縄県","おきなわけん","九州・沖縄","那覇市","なはし","シーサードン","🦁","ゴーヤーチャンプルー","首里城","日本で一番南にある県","日本で一番南にある県だよ！シーサーが有名だね。"]
 ];
 
-var PREFS = RAW.map(function(r){
+var JAPAN_PREFS = RAW.map(function(r){
   return {
     id:r[0], name:r[1], yomi:r[2], region:r[3], capital:r[4], capitalYomi:r[5],
     monster:r[6], emoji:r[7], food:r[8], place:r[9], feature:r[10], hint:r[11]
   };
 });
-var PREF_BY_ID = {};
-PREFS.forEach(function(p){ PREF_BY_ID[p.id] = p; });
 
-var REGION_ORDER = ["北海道・東北","関東","中部","近畿","中国","四国","九州・沖縄"];
-var BOSS = {
+var JAPAN_REGION_ORDER = ["北海道・東北","関東","中部","近畿","中国","四国","九州・沖縄"];
+var JAPAN_BOSS = {
   "北海道・東北":{name:"オオヌプリドラゴン", emoji:"🐉", desc:"雪と大地の守り神。北の国のモンスターたちを見守っているよ。"},
   "関東":{name:"カントーガーディアン", emoji:"🛡️", desc:"都心を守る鉄壁の番人。たくさんの人々のくらしを支えているよ。"},
   "中部":{name:"アルプスキング", emoji:"⛰️", desc:"高い山々を治める王者。日本のまん中にそびえ立っているよ。"},
@@ -1194,9 +1242,105 @@ var BOSS = {
 };
 
 /* =========================================================
+   1b. 世界編データ（30か国 × 6大陸）
+   [id, 国名, よみ, 大陸, 首都, 首都よみ, モンスター名, 絵文字, 名物, 観光地, 特徴(短い), ヒント文]
+========================================================= */
+var WORLD_RAW = [
+[1,"中国","ちゅうごく","アジア","北京","ペキン","パンダーゴン","🐼","ギョーザ","万里の長城","世界で人口がとても多い国","世界で人口がとても多い国だよ。ぎょうざが有名だね！"],
+[2,"韓国","かんこく","アジア","ソウル","ソウル","キムチーラ","🌶️","キムチ","景福宮","日本のおとなりの国","日本のおとなりの国だよ。キムチが有名だね！"],
+[3,"インド","インド","アジア","ニューデリー","ニューデリー","カレーガネッシュ","🐘","カレー","タージ・マハル","カレーが生まれた国","とても人口が多い国だよ。カレーの発祥地なんだ！"],
+[4,"タイ","タイ","アジア","バンコク","バンコク","トゥクトゥクル","🛺","トムヤムクン","ワット・アルン","ほほえみの国と呼ばれる","「ほほえみの国」と呼ばれているよ。トゥクトゥクという乗り物が有名！"],
+[5,"サウジアラビア","サウジアラビア","アジア","リヤド","リヤド","スナラクーダ","🐫","デーツ(なつめやし)","メッカ","世界有数の石油産出国","石油がたくさんとれる国だよ。砂漠が広がっているんだ。"],
+[6,"イギリス","イギリス","ヨーロッパ","ロンドン","ロンドン","ティーカップドラゴン","☕","フィッシュアンドチップス","ビッグベン","紅茶をよく飲む国","紅茶をよく飲む国だよ。ビッグベンが有名だね！"],
+[7,"フランス","フランス","ヨーロッパ","パリ","パリ","クロワッサンヌ","🥐","クロワッサン","エッフェル塔","芸術とファッションの国","エッフェル塔がある国だよ。芸術やファッションでも有名！"],
+[8,"ドイツ","ドイツ","ヨーロッパ","ベルリン","ベルリン","ソーセージャー","🌭","ソーセージ","ノイシュヴァンシュタイン城","自動車工業がさかん","自動車づくりがさかんな国だよ。ソーセージもおいしいよ！"],
+[9,"イタリア","イタリア","ヨーロッパ","ローマ","ローマ","ピザローマン","🍕","ピザ","コロッセオ","長靴のような形の国","長靴のような形をした国だよ。ピザが生まれた国なんだ！"],
+[10,"スペイン","スペイン","ヨーロッパ","マドリード","マドリード","パエリオン","🥘","パエリア","サグラダ・ファミリア","情熱の国と呼ばれる","情熱の国と呼ばれているよ。パエリアが有名だね！"],
+[11,"アメリカ合衆国","あめりかがっしゅうこく","北アメリカ","ワシントンD.C.","ワシントンディーシー","バーガーイーグル","🍔","ハンバーガー","自由の女神","世界で一番経済が大きい国","世界で一番経済が大きい国だよ。自由の女神が有名だね！"],
+[12,"カナダ","カナダ","北アメリカ","オタワ","オタワ","メープルベア","🍁","メープルシロップ","ナイアガラの滝","世界で2番目に面積が大きい国","世界で2番目に面積が大きい国だよ。メープルシロップが有名！"],
+[13,"メキシコ","メキシコ","北アメリカ","メキシコシティ","メキシコシティ","タコスロス","🌮","タコス","チチェン・イッツァ遺跡","とうもろこし料理が有名","タコスが生まれた国だよ。古代の遺跡もたくさんあるんだ。"],
+[14,"キューバ","キューバ","北アメリカ","ハバナ","ハバナ","サルサドラム","🥁","黒豆料理","オールドハバナ","陽気な音楽の国","陽気な音楽が有名な国だよ。"],
+[15,"ジャマイカ","ジャマイカ","北アメリカ","キングストン","キングストン","レゲエコッコ","🐔","ジャークチキン","ブルーマウンテン","レゲエ音楽発祥の地","レゲエ音楽が生まれた国だよ！"],
+[16,"ブラジル","ブラジル","南アメリカ","ブラジリア","ブラジリア","サッカリオ","⚽","シュラスコ","コルコバードのキリスト像","サッカーが盛んな国","サッカーがとても盛んな国だよ！南アメリカで一番大きい国なんだ。"],
+[17,"アルゼンチン","アルゼンチン","南アメリカ","ブエノスアイレス","ブエノスアイレス","タンゴウシ","🐂","牛肉料理(アサード)","イグアスの滝","タンゴ発祥の地","タンゴが生まれた国だよ。牛肉料理もおいしいよ！"],
+[18,"ペルー","ペルー","南アメリカ","リマ","リマ","マチュピチュー","🦙","セビーチェ","マチュピチュ","古代インカ帝国の遺跡が残る","マチュピチュという古代遺跡が有名だよ！"],
+[19,"チリ","チリ","南アメリカ","サンティアゴ","サンティアゴ","モアイガー","🗿","ぶどう(ワイン)","モアイ像(イースター島)","南北にとても細長い国","南北にとても細長い国だよ。モアイ像でも有名だね。"],
+[20,"コロンビア","コロンビア","南アメリカ","ボゴタ","ボゴタ","コーヒーニャ","☕","コーヒー豆","カルタヘナの旧市街","コーヒーの生産量が世界有数","コーヒー豆の生産で有名な国だよ！"],
+[21,"エジプト","エジプト","アフリカ","カイロ","カイロ","ピラミッドン","🏛️","コシャリ","ピラミッド","ナイル川が流れる国","大きなピラミッドがある国だよ。ナイル川が流れているんだ。"],
+[22,"ケニア","ケニア","アフリカ","ナイロビ","ナイロビ","サバンナライオ","🦁","ウガリ","サバンナ(マサイマラ)","マラソン選手が多い","マラソンが強い選手がたくさんいる国だよ！サバンナが広がっているね。"],
+[23,"南アフリカ共和国","みなみアフリカきょうわこく","アフリカ","プレトリア","プレトリア","テーブルマウンテンザウルス","🦏","ビルトング(干し肉)","テーブルマウンテン","アフリカ大陸最南端に近い国","アフリカ大陸の南のはしにある国だよ。"],
+[24,"モロッコ","モロッコ","アフリカ","ラバト","ラバト","サハラフォックス","🦊","タジン鍋料理","サハラ砂漠","アフリカ大陸の北西のはし","サハラ砂漠が広がる国だよ。アフリカの北西にあるんだ。"],
+[25,"ナイジェリア","ナイジェリア","アフリカ","アブジャ","アブジャ","ジョロフライガー","🐅","ジョロフライス","オルモ岩","アフリカで人口が一番多い国","アフリカで一番人口が多い国だよ！"],
+[26,"オーストラリア","オーストラリア","オセアニア","キャンベラ","キャンベラ","カンガルート","🦘","ミートパイ","エアーズロック","世界最小の大陸で最大の島","世界一小さい大陸で、世界一大きい島でもあるよ。エアーズロックが有名！"],
+[27,"ニュージーランド","ニュージーランド","オセアニア","ウェリントン","ウェリントン","キーウィーン","🥝","パブロバ","ミルフォード・サウンド","羊の数が人口より多い国","羊の数が人口より多い国だよ！"],
+[28,"フィジー","フィジー","オセアニア","スバ","スバ","サンゴレオン","🐠","ココナッツ料理","美しいサンゴ礁の海","南太平洋の楽園と呼ばれる","美しいサンゴ礁の海がある、南太平洋の島国だよ。"],
+[29,"パプアニューギニア","パプアニューギニア","オセアニア","ポートモレスビー","ポートモレスビー","ジャングルバード","🦜","サゴ(でんぷん食)","熱帯雨林のジャングル","800以上の言語が話されている","800以上の言語が話されている国だよ！熱帯雨林が広がっているんだ。"],
+[30,"サモア","サモア","オセアニア","アピア","アピア","サモアタートル","🐢","ロボロボ(ココナッツ料理)","美しいビーチ","南太平洋の伝統文化が残る島国","南太平洋にある、美しいビーチの島国だよ。"]
+];
+
+var WORLD_PREFS = WORLD_RAW.map(function(r){
+  return {
+    id:r[0], name:r[1], yomi:r[2], region:r[3], capital:r[4], capitalYomi:r[5],
+    monster:r[6], emoji:r[7], food:r[8], place:r[9], feature:r[10], hint:r[11]
+  };
+});
+
+var WORLD_REGION_ORDER = ["アジア","ヨーロッパ","北アメリカ","南アメリカ","アフリカ","オセアニア"];
+var WORLD_BOSS = {
+  "アジア":{name:"シルクロードドラゴン", emoji:"🐉", desc:"広い大陸をかけぬける、シルクロードの守り神だよ。"},
+  "ヨーロッパ":{name:"キャッスルナイト", emoji:"🏰", desc:"古いお城を守る、伝説の騎士だよ。"},
+  "北アメリカ":{name:"リバティタイタン", emoji:"🗽", desc:"自由の女神の力を宿す、巨大な守護神だよ。"},
+  "南アメリカ":{name:"アンデスコンドル", emoji:"🦅", desc:"アンデス山脈を飛びまわる、伝説の大鳥だよ。"},
+  "アフリカ":{name:"サバンナライオンキング", emoji:"🦁", desc:"広いサバンナを治める、百獣の王だよ。"},
+  "オセアニア":{name:"グレートリーフガーディアン", emoji:"🐠", desc:"美しいサンゴ礁の海を守る、海の番人だよ。"}
+};
+
+/* =========================================================
+   1c. モード切りかえ（日本編 / 世界編）
+========================================================= */
+var JAPAN_LABELS = {
+  groupWord:"地方", capitalWord:"県庁所在地",
+  titleName:"都道府県モンスターズ",
+  titleSub:"〜47都道府県を集めて全国制覇！〜",
+  completeTitle:"全国制覇！！",
+  masterLine:"君は都道府県マスター！",
+  mapTitle:"🗾 日本地図・地方ボス",
+  dexTitle:"📖 モンスター図鑑",
+  switchBtn:"🌏 世界編で遊ぶ",
+  switchTo:"world",
+  titleEmoji:["🐻‍❄️","🍎","🐙","🦁","🍑"]
+};
+var WORLD_LABELS = {
+  groupWord:"大陸", capitalWord:"首都",
+  titleName:"せかいモンスターズ",
+  titleSub:"〜30の国を集めて世界制覇！〜",
+  completeTitle:"世界制覇！！",
+  masterLine:"君は世界はかせだ！",
+  mapTitle:"🌏 世界地図・大陸ボス",
+  dexTitle:"📖 モンスター図鑑（世界編）",
+  switchBtn:"🗾 日本編で遊ぶ",
+  switchTo:"japan",
+  titleEmoji:["🐼","🗽","🦘","🦁","🏰"]
+};
+
+var currentMode = "japan";
+var PREFS = JAPAN_PREFS;
+var REGION_ORDER = JAPAN_REGION_ORDER;
+var BOSS = JAPAN_BOSS;
+var LABELS = JAPAN_LABELS;
+var PREF_BY_ID = {};
+function rebuildPrefById(){
+  PREF_BY_ID = {};
+  PREFS.forEach(function(p){ PREF_BY_ID[p.id] = p; });
+}
+rebuildPrefById();
+
+/* =========================================================
    2. セーブデータ
 ========================================================= */
-var STORAGE_KEY = "pref-monsters-save-v1";
+var JAPAN_STORAGE_KEY = "pref-monsters-save-v1";
+var WORLD_STORAGE_KEY = "pref-monsters-save-world-v1";
+var STORAGE_KEY = JAPAN_STORAGE_KEY;
 var state = null;
 
 function defaultState(){
@@ -1322,6 +1466,7 @@ function monsterColor(id){
   return "hsl("+hue+",68%,52%)";
 }
 function rubyName(name, yomi){
+  if(!yomi || yomi===name) return name;
   return '<ruby>'+name+'<rt>'+yomi+'</rt></ruby>';
 }
 
@@ -1333,11 +1478,11 @@ var QUIZ_TYPES = ["capital","region","food","place","feature"];
 function buildQuizQuestion(pref, type){
   var question, answer, wrongPool;
   if(type==="capital"){
-    question = pref.name+"の県庁所在地はどこ？";
+    question = pref.name+"の"+LABELS.capitalWord+"はどこ？";
     answer = pref.capital;
     wrongPool = PREFS.filter(function(p){return p.id!==pref.id;}).map(function(p){return p.capital;});
   } else if(type==="region"){
-    question = pref.name+"は何地方にある？";
+    question = pref.name+"は何"+LABELS.groupWord+"にある？";
     answer = pref.region;
     wrongPool = REGION_ORDER.filter(function(r){return r!==pref.region;});
   } else if(type==="food"){
@@ -1381,8 +1526,63 @@ function refreshStatusbar(){
   document.getElementById("stat-score").textContent = state.score;
   document.getElementById("stat-level").textContent = getLevel();
   document.getElementById("stat-count").textContent = state.collected.length;
+  document.getElementById("stat-total").textContent = PREFS.length;
+  document.getElementById("dex-count-total").textContent = PREFS.length;
   document.getElementById("title-progress").textContent =
-    state.collected.length>0 ? ("これまでに "+state.collected.length+" / 47 匹 GETしたよ！") : "";
+    state.collected.length>0 ? ("これまでに "+state.collected.length+" / "+PREFS.length+" 匹 GETしたよ！") : "";
+}
+
+function applyLabels(){
+  document.getElementById("title-name-span").textContent = LABELS.titleName;
+  document.getElementById("title-monsters").innerHTML = LABELS.titleEmoji.map(function(e){ return "<span>"+e+"</span>"; }).join("");
+  document.getElementById("title-sub-span").textContent = LABELS.titleSub;
+  document.getElementById("btn-switch-mode").textContent = LABELS.switchBtn;
+  document.getElementById("btn-complete-switch-mode").textContent = "🔀 "+LABELS.switchBtn;
+  document.getElementById("dex-title-h2").textContent = LABELS.dexTitle;
+  document.getElementById("map-title-h2").textContent = LABELS.mapTitle;
+  document.getElementById("nav-regions").title = LABELS.groupWord+"ボス";
+  document.getElementById("complete-title-div").textContent = LABELS.completeTitle;
+  document.getElementById("complete-master-h2").textContent = LABELS.masterLine;
+  document.getElementById("complete-sub-p").textContent =
+    PREFS.length+(currentMode==="world"?"か国":"都道府県")+" × "+REGION_ORDER.length+LABELS.groupWord+"ボス、すべて制覇したよ！";
+  document.title = LABELS.titleName+" "+LABELS.titleSub;
+}
+
+var MODE_KEY = "pref-monsters-mode";
+function loadMode(){
+  try{ return localStorage.getItem(MODE_KEY) === "world" ? "world" : "japan"; }
+  catch(e){ return "japan"; }
+}
+function saveMode(mode){
+  try{ localStorage.setItem(MODE_KEY, mode); }catch(e){ /* localStorage unavailable - ignore */ }
+}
+
+function applyModeConfig(mode){
+  currentMode = mode;
+  if(mode === "world"){
+    PREFS = WORLD_PREFS;
+    REGION_ORDER = WORLD_REGION_ORDER;
+    BOSS = WORLD_BOSS;
+    LABELS = WORLD_LABELS;
+    STORAGE_KEY = WORLD_STORAGE_KEY;
+  } else {
+    PREFS = JAPAN_PREFS;
+    REGION_ORDER = JAPAN_REGION_ORDER;
+    BOSS = JAPAN_BOSS;
+    LABELS = JAPAN_LABELS;
+    STORAGE_KEY = JAPAN_STORAGE_KEY;
+  }
+  rebuildPrefById();
+  state = loadState();
+}
+
+function switchMode(mode){
+  applyModeConfig(mode);
+  saveMode(mode);
+  sessionRoundCount = 0;
+  applyLabels();
+  refreshStatusbar();
+  showScreen("title");
 }
 
 /* =========================================================
@@ -1409,7 +1609,7 @@ function pendingBossRegion(){
   return null;
 }
 function isFullyComplete(){
-  return state.collected.length===47 && state.bossCleared.length===7;
+  return state.collected.length===PREFS.length && state.bossCleared.length===REGION_ORDER.length;
 }
 
 function startNextRound(){
@@ -1626,9 +1826,9 @@ function showDexDetail(p){
     '<div class="dex-detail-emoji" style="color:'+monsterColor(p.id)+'">'+p.emoji+'</div>'+
     '<h2 style="margin:8px 0 0;">'+p.monster+'</h2>'+
     '<div class="dex-detail-table">'+
-      '<div><span>都道府県</span><span>'+rubyName(p.name,p.yomi)+'</span></div>'+
-      '<div><span>地方</span><span>'+p.region+'</span></div>'+
-      '<div><span>県庁所在地</span><span>'+rubyName(p.capital,p.capitalYomi)+'</span></div>'+
+      '<div><span>'+(currentMode==="world"?"国名":"都道府県")+'</span><span>'+rubyName(p.name,p.yomi)+'</span></div>'+
+      '<div><span>'+LABELS.groupWord+'</span><span>'+p.region+'</span></div>'+
+      '<div><span>'+LABELS.capitalWord+'</span><span>'+rubyName(p.capital,p.capitalYomi)+'</span></div>'+
       '<div><span>有名な食べ物</span><span>'+p.food+'</span></div>'+
       '<div><span>有名な観光地</span><span>'+p.place+'</span></div>'+
       '<div><span>特徴</span><span>'+p.feature+'</span></div>'+
@@ -1656,8 +1856,38 @@ function renderJapanMap(){
   });
 }
 
+function renderWorldMap(){
+  var wrap = document.getElementById("world-map");
+  wrap.innerHTML = "";
+  REGION_ORDER.forEach(function(region){
+    var block = document.createElement("div");
+    block.className = "world-region-block";
+    var title = document.createElement("div");
+    title.className = "world-region-title";
+    title.textContent = region;
+    block.appendChild(title);
+
+    var chips = document.createElement("div");
+    chips.className = "world-chips";
+    PREFS.filter(function(p){ return p.region===region; }).forEach(function(p){
+      var got = state.collected.indexOf(p.id) !== -1;
+      var chip = document.createElement("span");
+      chip.className = "world-chip"+(got?" got":"");
+      chip.textContent = got ? p.name : "？？？";
+      if(got){
+        chip.addEventListener("click", function(){ showDexDetail(p); });
+      }
+      chips.appendChild(chip);
+    });
+    block.appendChild(chips);
+    wrap.appendChild(block);
+  });
+}
+
 function renderRegions(){
-  renderJapanMap();
+  document.getElementById("japan-map-panel").classList.toggle("hidden", currentMode!=="japan");
+  document.getElementById("world-map-panel").classList.toggle("hidden", currentMode!=="world");
+  if(currentMode==="japan"){ renderJapanMap(); } else { renderWorldMap(); }
   var content = document.getElementById("regions-content");
   content.innerHTML = "";
   REGION_ORDER.forEach(function(region){
@@ -1702,6 +1932,7 @@ var BOSS_TIME_LIMIT = 10; // ボス戦1問あたりの制限時間（秒）
 
 function showBossIntro(region){
   var boss = BOSS[region];
+  document.getElementById("bossintro-h2").textContent = LABELS.groupWord+"ボスがあらわれた！";
   document.getElementById("bossintro-emoji").textContent = boss.emoji;
   document.getElementById("bossintro-text").textContent = region+"のモンスターを全部あつめたね！「"+boss.name+"」が立ちふさがる。"+boss.desc;
   var fightBtn = document.getElementById("btn-boss-fight");
@@ -1847,7 +2078,7 @@ function finishBossBattle(){
   } else {
     html += '<div class="result-emoji">💦</div>';
     html += '<div class="result-title ng">おしい！</div>';
-    html += '<div class="result-msg">'+bossState.correctCount+'/3問正解…ボスにはにげられてしまった。<br>また挑戦しよう！（🗾地方ボス画面からいつでも再挑戦できるよ）</div>';
+    html += '<div class="result-msg">'+bossState.correctCount+'/3問正解…ボスにはにげられてしまった。<br>また挑戦しよう！（🗾'+LABELS.groupWord+'ボス画面からいつでも再挑戦できるよ）</div>';
   }
   html += '<button class="btn btn-primary btn-block" id="btn-boss-result-next">つぎへ ▶</button>';
   card.innerHTML = html;
@@ -1924,6 +2155,12 @@ document.getElementById("btn-complete-map").addEventListener("click", function()
 document.getElementById("btn-complete-home").addEventListener("click", function(){
   showScreen("title");
 });
+document.getElementById("btn-switch-mode").addEventListener("click", function(){
+  switchMode(LABELS.switchTo);
+});
+document.getElementById("btn-complete-switch-mode").addEventListener("click", function(){
+  switchMode(LABELS.switchTo);
+});
 document.getElementById("btn-reset").addEventListener("click", function(){
   if(confirm("本当にデータを消しますか？\n集めたモンスターやスコアが全部なくなるよ。")){
     state = defaultState();
@@ -1942,7 +2179,8 @@ document.getElementById("dex-detail-overlay").addEventListener("click", function
    12. 初期化
 ========================================================= */
 function init(){
-  state = loadState();
+  applyModeConfig(loadMode());
+  applyLabels();
   refreshStatusbar();
   showScreen("title");
 }
