@@ -595,6 +595,35 @@
     width:26px; height:12px; border-radius:6px; background:rgba(255,255,255,.25);
   }
   .boss-hp .pip.on{background:var(--danger);}
+  .boss-timer{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .boss-timer-bar{
+    flex:1;
+    height:14px;
+    background:var(--panel-soft);
+    border-radius:999px;
+    overflow:hidden;
+  }
+  .boss-timer-fill{
+    height:100%;
+    width:100%;
+    border-radius:999px;
+    background:linear-gradient(90deg,var(--accent2),#20b076);
+    transition:width 1s linear, background-color .3s;
+  }
+  .boss-timer-fill.warn{background:linear-gradient(90deg,#ffb23c,#e8631a);}
+  .boss-timer-fill.danger{background:linear-gradient(90deg,#ff7b8a,#e8455a);}
+  .boss-timer-text{
+    font-weight:900;
+    font-size:1rem;
+    color:var(--ink);
+    min-width:28px;
+    text-align:center;
+  }
 
   /* howto */
   .howto-step{
@@ -1048,6 +1077,10 @@
         <div class="boss-hp" id="boss-hp"></div>
       </div>
       <div class="panel">
+        <div class="boss-timer">
+          <div class="boss-timer-bar"><div class="boss-timer-fill" id="boss-timer-fill"></div></div>
+          <div class="boss-timer-text" id="boss-timer-text">10</div>
+        </div>
         <div class="quiz-question" id="boss-question"></div>
         <div class="choices" id="boss-choices"></div>
       </div>
@@ -1199,6 +1232,36 @@ function getLevel(){
 /* =========================================================
    3. ユーティリティ
 ========================================================= */
+var audioCtx = null;
+function getAudioCtx(){
+  if(!audioCtx){
+    try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch(e){ audioCtx = null; }
+  }
+  return audioCtx;
+}
+function playTone(ctx, freq, startTime, duration, type){
+  var osc = ctx.createOscillator();
+  var gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0.0001, startTime);
+  gain.gain.exponentialRampToValueAtTime(0.22, startTime + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(startTime);
+  osc.stop(startTime + duration + 0.02);
+}
+function playCorrectSound(){
+  var ctx = getAudioCtx();
+  if(!ctx) return;
+  if(ctx.state === "suspended"){ ctx.resume(); }
+  var now = ctx.currentTime;
+  playTone(ctx, 880, now, 0.12, "triangle");        // A5
+  playTone(ctx, 1174.66, now + 0.1, 0.2, "triangle"); // D6
+}
+
 function shuffle(arr){
   var a = arr.slice();
   for(var i=a.length-1;i>0;i--){
@@ -1272,6 +1335,7 @@ function randomQuizForPref(pref){
 ========================================================= */
 var screens = ["title","howto","game","dex","regions","bossintro","boss","complete"];
 function showScreen(name){
+  if(name!=="boss") stopBossTimer();
   screens.forEach(function(s){
     document.getElementById("screen-"+s).classList.toggle("hidden", s!==name);
   });
@@ -1294,6 +1358,8 @@ function refreshStatusbar(){
 var currentPref = null;
 var currentQuiz = null;
 var answered = false;
+var SESSION_ROUND_LIMIT = 10; // これだけ問題を解いたら一度タイトルにもどる
+var sessionRoundCount = 0;
 
 function uncollectedPrefs(){
   return PREFS.filter(function(p){ return state.collected.indexOf(p.id) === -1; });
@@ -1389,6 +1455,7 @@ document.getElementById("btn-hint").addEventListener("click", function(){
 function handleAnswer(choice, btnEl){
   if(answered) return;
   answered = true;
+  sessionRoundCount++;
   var correct = choice === currentQuiz.answer;
   var buttons = document.querySelectorAll("#quiz-choices .choice-btn");
   buttons.forEach(function(b){
@@ -1467,12 +1534,23 @@ function showResult(info){
     html += '<div class="result-sub">正解は「'+currentQuiz.answer+'」だったよ</div>';
     html += '<div class="result-msg">覚えて次は正解しよう！<br>'+currentPref.monster+'（'+currentPref.name+'）にはまた会えるよ。</div>';
   }
-  html += '<button class="btn btn-primary btn-block" id="btn-result-next">つぎへ ▶</button>';
+  var sessionEnd = sessionRoundCount >= SESSION_ROUND_LIMIT && !pendingBossRegion() && !isFullyComplete();
+  if(sessionEnd){
+    html += '<div class="result-msg">🎉 '+SESSION_ROUND_LIMIT+'問といたよ！すこし休けいしよう。</div>';
+    html += '<button class="btn btn-primary btn-block" id="btn-result-next">🏠 タイトルへもどる</button>';
+  } else {
+    html += '<button class="btn btn-primary btn-block" id="btn-result-next">つぎへ ▶</button>';
+  }
   card.innerHTML = html;
   document.getElementById("result-overlay").classList.remove("hidden");
   document.getElementById("btn-result-next").addEventListener("click", function(){
     document.getElementById("result-overlay").classList.add("hidden");
-    startNextRound();
+    if(sessionEnd){
+      sessionRoundCount = 0;
+      showScreen("title");
+    } else {
+      startNextRound();
+    }
   });
 }
 
@@ -1587,6 +1665,8 @@ function renderRegions(){
    9. ボス戦
 ========================================================= */
 var bossState = null;
+var BOSS_TIME_LIMIT = 10; // ボス戦1問あたりの制限時間（秒）
+
 function showBossIntro(region){
   var boss = BOSS[region];
   document.getElementById("bossintro-emoji").textContent = boss.emoji;
@@ -1601,9 +1681,41 @@ function startBossBattle(region){
   var chosen = prefsInRegion.slice(0, Math.min(3, prefsInRegion.length));
   while(chosen.length<3){ chosen.push(pickRandom(prefsInRegion)); }
   var questions = chosen.map(function(p){ return { pref:p, quiz: randomQuizForPref(p) }; });
-  bossState = { region:region, boss:BOSS[region], questions:questions, index:0, correctCount:0, answered:false };
+  bossState = { region:region, boss:BOSS[region], questions:questions, index:0, correctCount:0, answered:false, timerId:null, timeLeft:BOSS_TIME_LIMIT };
   showScreen("boss");
   renderBossQuestion();
+}
+
+function updateBossTimerDisplay(){
+  var pct = Math.max(0, bossState.timeLeft) / BOSS_TIME_LIMIT * 100;
+  var fill = document.getElementById("boss-timer-fill");
+  var text = document.getElementById("boss-timer-text");
+  fill.style.width = pct + "%";
+  fill.classList.remove("warn", "danger");
+  if(bossState.timeLeft <= 3) fill.classList.add("danger");
+  else if(bossState.timeLeft <= 6) fill.classList.add("warn");
+  text.textContent = Math.max(0, bossState.timeLeft);
+}
+
+function stopBossTimer(){
+  if(bossState && bossState.timerId){
+    clearInterval(bossState.timerId);
+    bossState.timerId = null;
+  }
+}
+
+function startBossTimer(){
+  stopBossTimer();
+  bossState.timeLeft = BOSS_TIME_LIMIT;
+  updateBossTimerDisplay();
+  bossState.timerId = setInterval(function(){
+    bossState.timeLeft--;
+    updateBossTimerDisplay();
+    if(bossState.timeLeft <= 0){
+      stopBossTimer();
+      handleBossTimeout();
+    }
+  }, 1000);
 }
 
 function renderBossHp(){
@@ -1633,11 +1745,22 @@ function renderBossQuestion(){
     btn.addEventListener("click", function(){ handleBossAnswer(choice, btn); });
     wrap.appendChild(btn);
   });
+  startBossTimer();
+}
+
+function goToNextBossStep(){
+  if(bossState.index < 2){
+    bossState.index++;
+    renderBossQuestion();
+  } else {
+    finishBossBattle();
+  }
 }
 
 function handleBossAnswer(choice, btnEl){
   if(bossState.answered) return;
   bossState.answered = true;
+  stopBossTimer();
   var q = bossState.questions[bossState.index].quiz;
   var correct = choice === q.answer;
   var buttons = document.querySelectorAll("#boss-choices .choice-btn");
@@ -1648,16 +1771,28 @@ function handleBossAnswer(choice, btnEl){
     else if(b===btnEl && !correct) b.classList.add("wrong");
     else b.classList.add("dim");
   });
-  if(correct) bossState.correctCount++;
+  if(correct){
+    bossState.correctCount++;
+    playCorrectSound();
+  }
 
-  setTimeout(function(){
-    if(bossState.index < 2){
-      bossState.index++;
-      renderBossQuestion();
-    } else {
-      finishBossBattle();
-    }
-  }, 900);
+  setTimeout(goToNextBossStep, 900);
+}
+
+function handleBossTimeout(){
+  if(bossState.answered) return;
+  bossState.answered = true;
+  var q = bossState.questions[bossState.index].quiz;
+  var buttons = document.querySelectorAll("#boss-choices .choice-btn");
+  buttons.forEach(function(b){
+    b.disabled = true;
+    var txt = b.textContent.trim();
+    if(txt===q.answer) b.classList.add("correct");
+    else b.classList.add("dim");
+  });
+  document.getElementById("boss-timer-text").textContent = "0";
+
+  setTimeout(goToNextBossStep, 900);
 }
 
 function finishBossBattle(){
