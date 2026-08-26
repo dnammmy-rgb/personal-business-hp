@@ -539,7 +539,8 @@
   .world-map-wrap .country.got,
   .world-map-wrap .country.got path{
     fill:var(--accent2);
-    stroke:#1c8a5b;
+    stroke:#0f6b45;
+    stroke-width:1.4;
     cursor:pointer;
   }
   .world-map-wrap .pref-label{font-size:6.5px; stroke-width:1.4px;}
@@ -2324,6 +2325,10 @@ function renderWorldMap(){
     if(!el) return;
     var got = state.collected.indexOf(p.id) !== -1;
     el.classList.toggle("got", got);
+    if(got){
+      // 小さい国が隣の国の陰にかくれないよう、GET済みの国を一番手前に描画する
+      el.parentNode.appendChild(el);
+    }
     if(got && !el.dataset.bound){
       el.dataset.bound = "1";
       el.addEventListener("click", function(){ showDexDetail(p); });
