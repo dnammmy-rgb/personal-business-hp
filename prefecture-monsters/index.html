@@ -2245,7 +2245,7 @@ function showResult(info){
     html += '<div class="result-sub">正解は「'+currentQuiz.answer+'」だったよ</div>';
     html += '<div class="result-msg">覚えて次は正解しよう！<br>'+currentPref.monster+'（'+currentPref.name+'）にはまた会えるよ。</div>';
   }
-  var sessionEnd = sessionRoundCount >= SESSION_ROUND_LIMIT && !pendingBossRegion() && !isFullyComplete();
+  var sessionEnd = sessionRoundCount >= SESSION_ROUND_LIMIT && !pendingBossRegion();
   if(sessionEnd){
     html += '<div class="result-msg">🎉 '+SESSION_ROUND_LIMIT+'問といたよ！すこし休けいしよう。</div>';
     html += '<button class="btn btn-primary btn-block" id="btn-result-next">🏠 タイトルへもどる</button>';
