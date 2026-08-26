@@ -544,6 +544,11 @@
     cursor:pointer;
   }
   .world-map-wrap .pref-label{font-size:6.5px; stroke-width:1.4px;}
+  .world-map-wrap .pref-label.got{
+    font-size:8px;
+    fill:#0d5c3a;
+    stroke:#eafff5;
+  }
   .world-map-wrap .sea-label{font-size:9px; stroke-width:1.4px;}
 
   /* ===== Region / boss screen ===== */
@@ -2344,12 +2349,15 @@ function renderWorldMap(){
   WORLD_PREFS.forEach(function(p){
     var code = WORLD_ISO[p.id];
     var el = document.querySelector('#world-map [id="'+code+'"]');
+    var label = document.querySelector('#world-map .pref-label[data-code="'+code+'"]');
     if(!el) return;
     var got = state.collected.indexOf(p.id) !== -1;
     el.classList.toggle("got", got);
+    if(label) label.classList.toggle("got", got);
     if(got){
       // 小さい国が隣の国の陰にかくれないよう、GET済みの国を一番手前に描画する
       el.parentNode.appendChild(el);
+      if(label) label.parentNode.appendChild(label);
     }
     if(got && !el.dataset.bound){
       el.dataset.bound = "1";
