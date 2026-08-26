@@ -1952,7 +1952,7 @@ function buildQuizQuestion(pref, type){
     answer = pref.yomi;
     wrongPool = PREFS.filter(function(p){return p.id!==pref.id;}).map(function(p){return p.yomi;});
   } else if(type==="kanji_name"){
-    question = "「"+pref.yomi+"」の都道府県名として正しい漢字はどれ？";
+    question = "「"+pref.yomi+"」は漢字で書くとどれ？";
     answer = pref.name;
     wrongPool = PREFS.filter(function(p){return p.id!==pref.id;}).map(function(p){return p.name;});
   } else {
