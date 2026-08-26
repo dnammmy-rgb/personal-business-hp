@@ -542,6 +542,8 @@
     stroke:#1c8a5b;
     cursor:pointer;
   }
+  .world-map-wrap .pref-label{font-size:6.5px; stroke-width:1.4px;}
+  .world-map-wrap .sea-label{font-size:9px; stroke-width:1.4px;}
 
   /* ===== Region / boss screen ===== */
   .region-card{
@@ -1723,6 +1725,9 @@ var WORLD_BOSS = {
 /* =========================================================
    1c. モード切りかえ（日本編 / 世界編）
 ========================================================= */
+var JAPAN_QUIZ_TYPES = ["capital","region","food","place","feature"];
+var WORLD_QUIZ_TYPES = ["region","food","place","feature"]; // 首都は難しいので世界編では出さない
+
 var JAPAN_LABELS = {
   groupWord:"地方", capitalWord:"県庁所在地",
   titleName:"都道府県モンスターズ",
@@ -1733,7 +1738,8 @@ var JAPAN_LABELS = {
   dexTitle:"📖 モンスター図鑑",
   switchBtn:"🌏 世界編で遊ぶ",
   switchTo:"world",
-  titleEmoji:["🐻‍❄️","🍎","🐙","🦁","🍑"]
+  titleEmoji:["🐻‍❄️","🍎","🐙","🦁","🍑"],
+  quizTypes:JAPAN_QUIZ_TYPES
 };
 var WORLD_LABELS = {
   groupWord:"大陸", capitalWord:"首都",
@@ -1745,7 +1751,8 @@ var WORLD_LABELS = {
   dexTitle:"📖 モンスター図鑑（世界編）",
   switchBtn:"🗾 日本編で遊ぶ",
   switchTo:"japan",
-  titleEmoji:["🐼","🗽","🦘","🦁","🏰"]
+  titleEmoji:["🐼","🗽","🦘","🦁","🏰"],
+  quizTypes:WORLD_QUIZ_TYPES
 };
 
 var currentMode = "japan";
@@ -1828,7 +1835,25 @@ function playCorrectSound(){
   if(ctx.state === "suspended"){ ctx.resume(); }
   var now = ctx.currentTime;
   playTone(ctx, 880, now, 0.12, "triangle");        // A5
-  playTone(ctx, 1174.66, now + 0.1, 0.2, "triangle"); // D6
+  playTone(ctx, 1174.66, now + 0.1, 0.2, "triangle"); // D6 「ピポーン」
+}
+function playWrongSound(){
+  var ctx = getAudioCtx();
+  if(!ctx) return;
+  if(ctx.state === "suspended"){ ctx.resume(); }
+  var now = ctx.currentTime;
+  var osc = ctx.createOscillator();
+  var gain = ctx.createGain();
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(392, now);               // G4
+  osc.frequency.exponentialRampToValueAtTime(261.63, now+0.26); // C4へ下がる「ぶー」
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(0.2, now+0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now+0.3);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now+0.32);
 }
 function playFanfareSound(){
   var ctx = getAudioCtx();
@@ -1898,7 +1923,6 @@ function rubyName(name, yomi){
 /* =========================================================
    4. クイズ生成
 ========================================================= */
-var QUIZ_TYPES = ["capital","region","food","place","feature"];
 
 function buildQuizQuestion(pref, type){
   var question, answer, wrongPool;
@@ -1929,7 +1953,7 @@ function buildQuizQuestion(pref, type){
 }
 
 function randomQuizForPref(pref){
-  var type = pickRandom(QUIZ_TYPES);
+  var type = pickRandom(LABELS.quizTypes);
   return buildQuizQuestion(pref, type);
 }
 
@@ -2131,6 +2155,7 @@ function handleAnswer(choice, btnEl){
   var emojiEl = document.getElementById("quiz-monster-emoji");
 
   if(correct){
+    playCorrectSound();
     state.streak += 1;
     if(state.streak > state.bestStreak) state.bestStreak = state.streak;
     var earned = 10 + (state.streak-1)*2;
@@ -2160,6 +2185,7 @@ function handleAnswer(choice, btnEl){
       leveledUp:leveledUp
     });
   } else {
+    playWrongSound();
     state.streak = 0;
     saveState();
     refreshStatusbar();
@@ -2459,6 +2485,8 @@ function handleBossAnswer(choice, btnEl){
   if(correct){
     bossState.correctCount++;
     playCorrectSound();
+  } else {
+    playWrongSound();
   }
 
   setTimeout(goToNextBossStep, 900);
@@ -2466,6 +2494,7 @@ function handleBossAnswer(choice, btnEl){
 
 function handleBossTimeout(){
   if(bossState.answered) return;
+  playWrongSound();
   bossState.answered = true;
   var q = bossState.questions[bossState.index].quiz;
   var buttons = document.querySelectorAll("#boss-choices .choice-btn");
