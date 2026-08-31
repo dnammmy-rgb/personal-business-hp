@@ -95,6 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderMonster(monster) {
     renderMonsterGroup([monster]);
     el.monsterName.textContent = monster.name;
+    Sound.playBgmForTier(monster.tier); // tierが変わらない間は再生し直されない
   }
 
   function renderMonsterHp(monster, hp) {
@@ -241,6 +242,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function showResult(result) {
+    Sound.stopBgm();
     const isBest = result.cleared && Storage.saveBestIfBetter(activeModeId, result);
 
     el.resultHeading.textContent = result.cleared ? "クリア！！" : "やられてしまった…";

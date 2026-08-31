@@ -26,6 +26,7 @@
 - ✅ 漢字モード：実際に遊べる。小学2年生で習う漢字36語（`js/data/kanji.js` の `KANJI_WORDS`）から、ひらがな語→漢字の3択で出題（`js/kanjiMode.js`）。まちがいの選択肢はできるだけ同じなかま（天気・生き物・かぞく等の`cluster`）から選ぶ。正解時は「ブレイクキック！」と表示（九九・文章題の「キック！」と区別）
 - ✅ 必殺技「怒りの拳」：モード共通で、3問連続正解すると次の正解が必殺技になる（`js/battle.js` の `STREAK_FOR_SPECIAL`）。ザコ敵は残りHPに関わらず一撃で撃破、中ボス・ラスボスはHPを半分削る。画面フラッシュ＋モンスターの大きめアニメーション演出つき。まちがえると連続記録はリセットされる
 - ✅ 効果音：Web Audio APIでその場で音を合成（外部音声ファイル不使用）。正解・失敗・必殺技・撃破・クリア・ゲームオーバーの一式（`js/sound.js`）。右上の🔊ボタンでミュート切り替え可能（`localStorage`に保存）
+- ✅ BGM：効果音と同じくWeb Audio APIで合成。ザコ敵/中ボス（青鬼・赤鬼・黒鬼）/ラスボス（？？？）でそれぞれ専用BGMがあり、登場するモンスターの`tier`に応じて自動で切り替わる。効果音より小さい音量でループ再生し、効果音とは同時に鳴る（詳細は下記6.）
 - ✅ 敵モンスターの画像：ユーザー提供の「敵キャラずかん」画像から8体分を切り出し・背景透過し実装済み（`assets/images/monsters/`）。絵文字表示は完全に廃止し、すべて`<img>`表示（詳細は下記5.）。
 
 次のステップ：とくに指定なし。ユーザーからの追加要望を待つ。
@@ -82,12 +83,16 @@ taichi-study-game/
 - ラスボスは戦闘中は `name: "？？？"` と表示され、倒した瞬間の演出でだけ `revealName: "大魔王 闇"` を表示する（`js/battle.js` の `onMonsterDefeated` は最後の1体を倒した場合も必ず呼ばれるようになっている）。
 - 元の「敵キャラずかん」画像（`assets/images/monsters/` 内のChatGPT生成ファイル）から8体を切り出し・AI背景除去（rembg）で透過PNG化したものを使用している。同じ手順が必要な場合は、Pillowで座標を指定して切り出し→rembgで透過、の順で行うとよい。
 
-## 6. 必殺技「怒りの拳」と効果音について
+## 6. 必殺技「怒りの拳」・効果音・BGMについて
 
 - `js/battle.js` の `state.streak` で連続正解数を管理し、`STREAK_FOR_SPECIAL`（現在3）に達した次の正解が必殺技になる。まちがえると`streak`は0に戻る。ダメージ量は`tier`によって分岐：ザコ敵は`state.monsterHp`をそのまま渡して一撃撃破、中ボス・ラスボスは`Math.ceil(state.monsterHp / 2)`で半分減らす。
 - 演出は`js/main.js`の`playCorrectSequence`が`isSpecial`フラグを見て分岐する。通常時は`.monster-image.hit`、必殺技時は`.monster-image.big-hit`（より大きい振動＋明滅、`css/style.css`）と`#screen-flash`（画面全体を一瞬明るくするオーバーレイ）を発動する。
 - 効果音は音声ファイルを使わず、`js/sound.js`がWeb Audio APIのオシレーター/ノイズバッファでその場合成している（`Sound.correct()` / `Sound.wrong()` / `Sound.special()` / `Sound.defeat()` / `Sound.clear()` / `Sound.gameOver()`）。iPad Safariの自動再生制限があるため、最初のユーザー操作（「はじめる」ボタンのクリック）で`Sound.unlock()`を呼びAudioContextを起こしている。ミュート状態は`localStorage`（`taichiStudyGame_muted`）に保存し、画面右上の`#btn-mute`で切り替えられる。
 - 新しい効果音を足したい場合は`js/sound.js`に`tone()`/`noiseBurst()`を組み合わせた関数を追加する形でよい（外部音声ファイルは置かない方針）。
+- **BGM**も同じく`js/sound.js`内で完結（外部音声ファイル不使用）。`tone()`/`noiseBurst()`を`setInterval`で一定間隔ごとに呼び出す簡易シーケンサー（`startBgm(id, stepMs, steps)`）で、ザコ敵/中ボス/ラスボスの3種類をそれぞれ`zakoBgmSteps`/`bossBgmSteps`/`lastbossBgmSteps`という配列で表現している。効果音より確実に小さい音量（`gain`0.02〜0.1程度）にしている。
+  - `Sound.playBgmForTier(monster.tier)` を `js/main.js` の `renderMonster()` から呼んでおり、tierが変わらない限り再生し直さないので多重再生にならない（`bgmId`で判定）。
+  - `Sound.stopBgm()` を `js/main.js` の `showResult()` の先頭で呼び、クリア/ゲームオーバー時にBGMを止めている。リトライ時は`battle.start()`→最初のモンスター描画で`playBgmForTier`が再度呼ばれ、自然に頭から再生される。
+  - BGMのオン/オフも効果音と同じ`muted`フラグ・同じミュートボタンに乗っている（`tone()`/`noiseBurst()`内部の判定を共用しているため、BGM側に個別のミュート制御は実装していない）。
 
 ## 7. ローカル確認方法
 

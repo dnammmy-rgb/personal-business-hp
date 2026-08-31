@@ -61,11 +61,93 @@ const Sound = (() => {
     source.start(audio.currentTime + startTime);
   }
 
+  // ---- BGM（ザコ敵/中ボス/ラスボス）----
+  // 効果音(tone/noiseBurst)をそのまま流用し、setIntervalで一定間隔ごとに
+  // 1ステップぶんの音を鳴らしてループさせる簡易シーケンサー。
+  let bgmTimer = null;
+  let bgmId = null; // 現在再生中のBGMの種類("zako"/"boss"/"lastboss")。同じ種類なら再生し直さない
+
+  function stopBgm() {
+    if (bgmTimer) {
+      clearInterval(bgmTimer);
+      bgmTimer = null;
+    }
+    bgmId = null;
+  }
+
+  function startBgm(id, stepMs, steps) {
+    if (bgmId === id) return; // 同じBGMが多重再生されないようにする
+    stopBgm();
+    bgmId = id;
+    let i = 0;
+    const playStep = () => {
+      const step = steps[i % steps.length];
+      if (step) step();
+      i += 1;
+    };
+    playStep();
+    bgmTimer = setInterval(playStep, stepMs);
+  }
+
+  // ザコ敵：明るすぎず、テンポよく戦っている感じのアルペジオ
+  const ZAKO_BGM_STEP_MS = 200;
+  const zakoBgmSteps = [
+    () => tone({ freq: 110, duration: 0.16, type: "square", gain: 0.05 }),
+    null,
+    () => tone({ freq: 164.81, duration: 0.12, type: "square", gain: 0.04 }),
+    () => tone({ freq: 220, duration: 0.12, type: "square", gain: 0.04 }),
+    () => tone({ freq: 164.81, duration: 0.12, type: "square", gain: 0.04 }),
+    null,
+    () => tone({ freq: 130.81, duration: 0.16, type: "square", gain: 0.05 }),
+    () => noiseBurst({ duration: 0.03, gain: 0.015 }),
+  ];
+
+  // 中ボス（青鬼・赤鬼・黒鬼）：低音の「ドンドン」＋不穏な音で強そう・怖そうな雰囲気に
+  const BOSS_BGM_STEP_MS = 260;
+  const bossBgmSteps = [
+    () => tone({ freq: 55, duration: 0.35, type: "triangle", gain: 0.09 }),
+    null,
+    () => tone({ freq: 116.54, duration: 0.18, type: "sawtooth", gain: 0.045 }),
+    null,
+    () => tone({ freq: 55, duration: 0.35, type: "triangle", gain: 0.09 }),
+    null,
+    () => tone({ freq: 116.54, duration: 0.18, type: "sawtooth", gain: 0.045 }),
+    null,
+  ];
+
+  // ラスボス（？？？）：中ボスよりさらに低く重く、不気味な高音を混ぜて最終決戦感を出す
+  const LASTBOSS_BGM_STEP_MS = 300;
+  const lastbossBgmSteps = [
+    () => {
+      tone({ freq: 41.2, duration: 0.42, type: "triangle", gain: 0.1 });
+      noiseBurst({ duration: 0.3, gain: 0.03 });
+    },
+    null,
+    null,
+    () => tone({ freq: 46.25, duration: 0.4, type: "sawtooth", gain: 0.06 }),
+    null,
+    () => tone({ freq: 41.2, duration: 0.42, type: "triangle", gain: 0.1 }),
+    null,
+    () => tone({ freq: 880, duration: 0.6, type: "sine", gain: 0.02 }),
+  ];
+
   return {
     // 最初のユーザー操作（タップ/クリック）で一度呼び、AudioContextを有効化する
     unlock() {
       ensureContext();
     },
+    // モンスターのtier("zako"/"boss"/"lastboss")に応じたBGMに切り替える。
+    // 同じtierが続く間は再生し直さない（例：ザコ敵が入れ替わってもBGMは鳴りっぱなし）。
+    playBgmForTier(tier) {
+      if (tier === "lastboss") {
+        startBgm("lastboss", LASTBOSS_BGM_STEP_MS, lastbossBgmSteps);
+      } else if (tier === "boss") {
+        startBgm("boss", BOSS_BGM_STEP_MS, bossBgmSteps);
+      } else {
+        startBgm("zako", ZAKO_BGM_STEP_MS, zakoBgmSteps);
+      }
+    },
+    stopBgm,
     isMuted() {
       return muted;
     },
