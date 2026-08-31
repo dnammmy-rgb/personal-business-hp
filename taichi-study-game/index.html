@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>九九・かけ算文章題・漢字を学べる モンスターたいじゲーム</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- タイトル画面 -->
+  <section id="screen-title" class="screen screen--active">
+    <div class="title-card">
+      <p class="title-eyebrow">小学2年生の自由研究</p>
+      <h1 class="title-heading">九九・文章題・漢字を学べる<br>モンスターたいじゲーム</h1>
+      <div class="title-monsters" aria-hidden="true">👹👺👻</div>
+      <button id="btn-start" class="btn btn--primary btn--large">はじめる</button>
+    </div>
+  </section>
+
+  <!-- モード選択画面 -->
+  <section id="screen-mode-select" class="screen">
+    <h2 class="screen-heading">どのモードで たたかう？</h2>
+    <div class="mode-list">
+      <button class="mode-card" data-mode="kuku">
+        <span class="mode-card__emoji">✖️</span>
+        <span class="mode-card__title">九九モード</span>
+        <span class="mode-card__desc">1〜9のだんの かけざん</span>
+      </button>
+      <button class="mode-card mode-card--disabled" data-mode="mondai" disabled>
+        <span class="mode-card__emoji">📖</span>
+        <span class="mode-card__title">文章題モード</span>
+        <span class="mode-card__desc">じゅんびちゅう</span>
+      </button>
+      <button class="mode-card mode-card--disabled" data-mode="kanji" disabled>
+        <span class="mode-card__emoji">🈷️</span>
+        <span class="mode-card__title">漢字モード</span>
+        <span class="mode-card__desc">じゅんびちゅう</span>
+      </button>
+    </div>
+    <button id="btn-back-to-title" class="btn btn--text">タイトルにもどる</button>
+  </section>
+
+  <!-- バトル画面 -->
+  <section id="screen-battle" class="screen">
+    <div class="battle-top">
+      <div class="hp-box hp-box--player">
+        <span class="hp-box__label">きみ</span>
+        <span id="player-hp" class="hp-box__hearts"></span>
+      </div>
+      <div class="battle-progress">
+        <span id="monster-index">1</span> / <span id="monster-total">5</span> たいめ
+      </div>
+    </div>
+
+    <div class="monster-stage">
+      <div id="monster-emoji" class="monster-emoji">👹</div>
+      <p id="monster-name" class="monster-name">モンスター</p>
+      <div class="hp-box hp-box--monster">
+        <span class="hp-box__label">てき</span>
+        <div class="hp-bar"><div id="monster-hp-bar" class="hp-bar__fill"></div></div>
+      </div>
+    </div>
+
+    <div class="question-box">
+      <p id="question-text" class="question-text">問題</p>
+    </div>
+
+    <div id="choice-list" class="choice-list"></div>
+
+    <p id="battle-message" class="battle-message" aria-live="polite"></p>
+  </section>
+
+  <!-- リザルト画面 -->
+  <section id="screen-result" class="screen">
+    <div class="result-card">
+      <h2 id="result-heading" class="result-heading">クリア！</h2>
+      <p id="result-detail" class="result-detail"></p>
+      <button id="btn-retry" class="btn btn--primary btn--large">もういちど</button>
+      <button id="btn-result-to-title" class="btn btn--text">タイトルにもどる</button>
+    </div>
+  </section>
+
+</div>
+
+<script src="js/data/monsters.js"></script>
+<script src="js/data/kuku.js"></script>
+<script src="js/data/mondai.js"></script>
+<script src="js/data/kanji.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/battle.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
