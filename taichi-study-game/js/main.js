@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const el = {
     btnStart: document.getElementById("btn-start"),
     btnBackToTitle: document.getElementById("btn-back-to-title"),
+    btnBattleHome: document.getElementById("btn-battle-home"),
     btnMute: document.getElementById("btn-mute"),
     screenFlash: document.getElementById("screen-flash"),
     modeCards: document.querySelectorAll(".mode-card:not(.mode-card--disabled)"),
@@ -35,6 +36,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const MODES = { multiplication: MultiplicationMode, kanji: KanjiMode, mixed: MixedMode };
   let activeModeId = "multiplication";
   let battle = null;
+  // ホームボタンで途中でやめたとき、演出中のsetTimeout/sleepチェーンが
+  // あとからタイトル画面に反映されてしまわないようにするための世代カウンター
+  let battleToken = 0;
 
   function showScreen(name) {
     Object.values(screens).forEach((s) => s.classList.remove("screen--active"));
@@ -170,21 +174,25 @@ document.addEventListener("DOMContentLoaded", () => {
     return `こたえは ${question.answer}`;
   }
 
-  // 正解演出：「せいかい！」→（文章題なら式を1秒表示）→ キック（または必殺技）の順で見せる
-  async function playCorrectSequence(state, question, isSpecial, proceed) {
+  // 正解演出：「せいかい！」→（文章題なら式を1秒表示）→ キック（または必殺技）の順で見せる。
+  // isCurrent()がfalseになった（ホームボタン等でバトルを離れた）ら、そこで演出を打ち切る。
+  async function playCorrectSequence(state, question, isSpecial, proceed, isCurrent) {
     setInputEnabled(false);
     renderStreak(state.streak);
     setMessage("せいかい！");
     await sleep(500);
+    if (!isCurrent()) return;
 
     if (question.type === "word") {
       setMessage(formatFormula(question));
       await sleep(900);
+      if (!isCurrent()) return;
     }
 
     if (isSpecial) {
       setMessage("れんぞく せいかい！ ひっさつわざ はつどう！");
       await sleep(600);
+      if (!isCurrent()) return;
       setMessage("いかりのこぶし！！");
       playKickEffect(true);
       Sound.special();
@@ -195,17 +203,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     renderMonsterHp(state.monsters[state.monsterIndex], state.monsterHp);
     await sleep(isSpecial ? 700 : 500);
+    if (!isCurrent()) return;
 
     proceed();
   }
 
-  async function playWrongSequence(state, question, proceed) {
+  async function playWrongSequence(state, question, proceed, isCurrent) {
     setInputEnabled(false);
     renderStreak(state.streak);
     setMessage(`ざんねん…！ こうげきされた！（${wrongAnswerLabel(question)}）`);
     renderPlayerHp(state.playerHp);
     Sound.wrong();
     await sleep(900);
+    if (!isCurrent()) return;
     proceed();
   }
 
@@ -213,26 +223,35 @@ document.addEventListener("DOMContentLoaded", () => {
     activeModeId = modeId;
     const mode = MODES[modeId];
 
+    battleToken += 1;
+    const token = battleToken;
+    const isCurrent = () => token === battleToken;
+
     battle = createBattle(mode, MONSTERS, {
       onQuestion(question, monster, state) {
+        if (!isCurrent()) return;
         renderMonster(monster);
         renderMonsterHp(monster, state.monsterHp);
         renderPlayerHp(state.playerHp);
         renderQuestion(question, state);
       },
       onCorrect(state, question, isSpecial, proceed) {
-        playCorrectSequence(state, question, isSpecial, proceed);
+        if (!isCurrent()) return;
+        playCorrectSequence(state, question, isSpecial, proceed, isCurrent);
       },
       onWrong(state, question, proceed) {
-        playWrongSequence(state, question, proceed);
+        if (!isCurrent()) return;
+        playWrongSequence(state, question, proceed, isCurrent);
       },
       onMonsterDefeated(defeatedIndex, state, proceed) {
+        if (!isCurrent()) return;
         const defeated = state.monsters[defeatedIndex];
         setMessage(`${defeated.revealName || defeated.name}をたおした！`);
         Sound.defeat();
-        setTimeout(proceed, 900);
+        setTimeout(() => { if (isCurrent()) proceed(); }, 900);
       },
       onFinish(result) {
+        if (!isCurrent()) return;
         showResult(result);
       },
     });
@@ -270,6 +289,12 @@ document.addEventListener("DOMContentLoaded", () => {
   el.btnBackToTitle.addEventListener("click", () => showScreen("title"));
   el.btnResultToTitle.addEventListener("click", () => showScreen("title"));
   el.btnRetry.addEventListener("click", () => startBattle(activeModeId));
+
+  el.btnBattleHome.addEventListener("click", () => {
+    battleToken += 1; // 進行中の演出・BGM切り替えを無効化してから抜ける
+    Sound.stopBgm();
+    showScreen("title");
+  });
 
   el.btnMute.addEventListener("click", () => {
     Sound.unlock();

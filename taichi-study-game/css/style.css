@@ -217,6 +217,23 @@ body {
   color: #fff;
 }
 
+.home-btn {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.home-btn:active {
+  transform: scale(0.92);
+}
+
 .hp-box {
   display: flex;
   align-items: center;
