@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btnResultToTitle: document.getElementById("btn-result-to-title"),
   };
 
-  const MODES = { multiplication: MultiplicationMode, kanji: KanjiMode };
+  const MODES = { multiplication: MultiplicationMode, kanji: KanjiMode, mixed: MixedMode };
   let activeModeId = "multiplication";
   let battle = null;
 
