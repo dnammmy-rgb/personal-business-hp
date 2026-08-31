@@ -1,5 +1,6 @@
 // バトル進行の共通ロジック。画面描画・演出のタイミングはcallbacks経由でmain.js側に任せる。
 const PLAYER_HP_MAX = 3;
+const STREAK_FOR_SPECIAL = 3; // これだけ連続正解すると必殺技「怒りの拳」が出る
 
 function createBattle(mode, monsters, callbacks) {
   const state = {
@@ -9,6 +10,7 @@ function createBattle(mode, monsters, callbacks) {
     monsterHp: 0,
     playerHp: PLAYER_HP_MAX,
     mistakes: 0,
+    streak: 0,
     startedAt: 0,
     currentQuestion: null,
   };
@@ -22,6 +24,7 @@ function createBattle(mode, monsters, callbacks) {
     state.monsterIndex = 0;
     state.playerHp = PLAYER_HP_MAX;
     state.mistakes = 0;
+    state.streak = 0;
     state.startedAt = Date.now();
     enterMonster();
   }
@@ -40,15 +43,25 @@ function createBattle(mode, monsters, callbacks) {
   // 次の問題やモンスター撃破処理に進む。演出中に状態が先走らないようにするための仕組み。
   function answer(rawValue) {
     const question = state.currentQuestion;
-    const chosenValue = Number(rawValue);
-    const correct = chosenValue === question.answer;
+    // 数字入力(九九)は answer、3択(文章題・漢字)は correctChoice で正誤判定する
+    const target = question.correctChoice !== undefined ? question.correctChoice : question.answer;
+    const correct = String(rawValue) === String(target);
 
     if (correct) {
-      state.monsterHp -= 1;
+      state.streak += 1;
+      const isSpecial = state.streak >= STREAK_FOR_SPECIAL;
+      const monster = currentMonster();
+      // 必殺技「怒りの拳」：ザコ敵は残りHPに関わらず一撃で撃破、中ボス・ラスボスはHPを半分削る
+      const damage = isSpecial
+        ? (monster.tier === "zako" ? state.monsterHp : Math.max(1, Math.ceil(state.monsterHp / 2)))
+        : 1;
+      if (isSpecial) state.streak = 0;
+
+      state.monsterHp -= damage;
       const defeatedIndex = state.monsterIndex;
       const defeated = state.monsterHp <= 0;
 
-      callbacks.onCorrect(state, question, () => {
+      callbacks.onCorrect(state, question, isSpecial, () => {
         if (!defeated) {
           askNextQuestion();
           return;
@@ -67,6 +80,7 @@ function createBattle(mode, monsters, callbacks) {
       return;
     }
 
+    state.streak = 0;
     state.mistakes += 1;
     state.playerHp -= 1;
     const dead = state.playerHp <= 0;

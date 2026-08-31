@@ -10,6 +10,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const el = {
     btnStart: document.getElementById("btn-start"),
     btnBackToTitle: document.getElementById("btn-back-to-title"),
+    btnMute: document.getElementById("btn-mute"),
+    screenFlash: document.getElementById("screen-flash"),
     modeCards: document.querySelectorAll(".mode-card:not(.mode-card--disabled)"),
     playerHp: document.getElementById("player-hp"),
     monsterIndex: document.getElementById("monster-index"),
@@ -17,11 +19,12 @@ document.addEventListener("DOMContentLoaded", () => {
     monsterGroup: document.getElementById("monster-group"),
     monsterName: document.getElementById("monster-name"),
     monsterHpBar: document.getElementById("monster-hp-bar"),
+    streakLabel: document.getElementById("streak-label"),
     questionText: document.getElementById("question-text"),
     answerForm: document.getElementById("answer-form"),
     answerInput: document.getElementById("answer-input"),
     answerSubmit: document.getElementById("answer-submit"),
-    formulaChoiceList: document.getElementById("formula-choice-list"),
+    choiceList: document.getElementById("choice-list"),
     battleMessage: document.getElementById("battle-message"),
     resultHeading: document.getElementById("result-heading"),
     resultDetail: document.getElementById("result-detail"),
@@ -29,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btnResultToTitle: document.getElementById("btn-result-to-title"),
   };
 
-  const MODES = { multiplication: MultiplicationMode };
+  const MODES = { multiplication: MultiplicationMode, kanji: KanjiMode };
   let activeModeId = "multiplication";
   let battle = null;
 
@@ -50,16 +53,30 @@ document.addEventListener("DOMContentLoaded", () => {
     return `${question.formula.replace("×", " × ")} ＝ ${question.answer}`;
   }
 
+  // 九九モードは「キック」、漢字モードは「ブレイクキック」と、答えた種類によって技名を変える
+  function attackLabelFor(question) {
+    return question.type === "kanji" ? "ブレイクキック！" : "キック！";
+  }
+
   function setInputEnabled(enabled) {
     el.answerInput.disabled = !enabled;
     el.answerSubmit.disabled = !enabled;
-    el.formulaChoiceList.querySelectorAll(".formula-choice-btn").forEach((btn) => {
+    el.choiceList.querySelectorAll(".choice-btn").forEach((btn) => {
       btn.disabled = !enabled;
     });
   }
 
   function renderPlayerHp(hp) {
     el.playerHp.textContent = "❤️".repeat(Math.max(hp, 0)) + "🖤".repeat(PLAYER_HP_MAX - Math.max(hp, 0));
+  }
+
+  function renderStreak(streak) {
+    if (streak >= 2) {
+      el.streakLabel.hidden = false;
+      el.streakLabel.textContent = `れんぞく ${streak}かい せいかいちゅう！`;
+    } else {
+      el.streakLabel.hidden = true;
+    }
   }
 
   // monsters は現状つねに1体だが、ザコ敵が複数同時に並ぶ画面にも対応できるよう配列で受け取る
@@ -85,28 +102,34 @@ document.addEventListener("DOMContentLoaded", () => {
     el.monsterHpBar.style.width = `${ratio * 100}%`;
   }
 
-  function playKickEffect() {
+  function playKickEffect(big) {
     el.monsterGroup.querySelectorAll(".monster-image").forEach((img) => {
-      img.classList.remove("hit");
+      img.classList.remove("hit", "big-hit");
       void img.offsetWidth; // reflow でアニメーションを再スタートさせる
-      img.classList.add("hit");
+      img.classList.add(big ? "big-hit" : "hit");
     });
+    if (big) {
+      el.screenFlash.classList.remove("flash");
+      void el.screenFlash.offsetWidth;
+      el.screenFlash.classList.add("flash");
+    }
   }
 
   function renderQuestion(question, state) {
     setMessage("");
+    renderStreak(state.streak);
     el.monsterIndex.textContent = state.monsterIndex + 1;
     el.monsterTotal.textContent = state.monsters.length;
     el.questionText.textContent = question.question;
     el.questionText.classList.toggle("question-text--word", question.type === "word");
 
-    // 文章題は「式の3択」、九九の計算問題は数字入力で答える
-    const isWord = question.type === "word";
-    el.answerForm.hidden = isWord;
-    el.formulaChoiceList.hidden = !isWord;
+    // choicesを持つ問題（文章題・漢字）は選択式、九九の計算問題は数字入力
+    const isChoice = Boolean(question.choices);
+    el.answerForm.hidden = isChoice;
+    el.choiceList.hidden = !isChoice;
 
-    if (isWord) {
-      renderFormulaChoices(question);
+    if (isChoice) {
+      renderChoices(question);
     } else {
       el.answerInput.value = "";
       el.answerInput.focus();
@@ -115,56 +138,72 @@ document.addEventListener("DOMContentLoaded", () => {
     setInputEnabled(true);
   }
 
-  function renderFormulaChoices(question) {
-    el.formulaChoiceList.innerHTML = "";
-    question.choices.forEach((formula) => {
+  function renderChoices(question) {
+    el.choiceList.innerHTML = "";
+    el.choiceList.classList.toggle("choice-list--kanji", question.type === "kanji");
+    question.choices.forEach((choice) => {
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "formula-choice-btn";
-      btn.textContent = formula;
-      btn.addEventListener("click", () => onFormulaChoiceClick(question, btn, formula));
-      el.formulaChoiceList.appendChild(btn);
+      btn.className = `choice-btn${question.type === "kanji" ? " choice-btn--kanji" : ""}`;
+      btn.textContent = choice;
+      btn.addEventListener("click", () => onChoiceClick(question, btn, choice));
+      el.choiceList.appendChild(btn);
     });
   }
 
-  function onFormulaChoiceClick(question, btn, formula) {
+  function onChoiceClick(question, btn, choice) {
     if (btn.disabled) return;
-    const isCorrect = formula === question.formula;
+    const isCorrect = choice === question.correctChoice;
     btn.classList.add(isCorrect ? "is-correct" : "is-wrong");
     if (!isCorrect) {
-      el.formulaChoiceList.querySelectorAll(".formula-choice-btn").forEach((b) => {
-        if (b.textContent === question.formula) b.classList.add("is-correct");
+      el.choiceList.querySelectorAll(".choice-btn").forEach((b) => {
+        if (b.textContent === question.correctChoice) b.classList.add("is-correct");
       });
     }
-    // 正誤判定は式を選んだ時点で確定する。battle.jsの数値比較の仕組みをそのまま使うため、
-    // 正解なら本来の答え、不正解なら絶対に一致しない値(answer+1)を渡す。
-    battle.answer(isCorrect ? question.answer : question.answer + 1);
+    battle.answer(choice);
   }
 
-  // 正解演出：「せいかい！」→（文章題なら式を1秒表示）→「キック！」の順で見せる
-  async function playCorrectSequence(state, question, proceed) {
+  function wrongAnswerLabel(question) {
+    if (question.type === "word") return `せいかいの式は ${question.formula}`;
+    if (question.type === "kanji") return `せいかいは「${question.correctChoice}」`;
+    return `こたえは ${question.answer}`;
+  }
+
+  // 正解演出：「せいかい！」→（文章題なら式を1秒表示）→ キック（または必殺技）の順で見せる
+  async function playCorrectSequence(state, question, isSpecial, proceed) {
     setInputEnabled(false);
+    renderStreak(state.streak);
     setMessage("せいかい！");
-    await sleep(600);
+    await sleep(500);
 
     if (question.type === "word") {
       setMessage(formatFormula(question));
-      await sleep(1000);
+      await sleep(900);
     }
 
-    setMessage("キック！");
-    playKickEffect();
+    if (isSpecial) {
+      setMessage("れんぞく せいかい！ ひっさつわざ はつどう！");
+      await sleep(600);
+      setMessage("いかりのこぶし！！");
+      playKickEffect(true);
+      Sound.special();
+    } else {
+      setMessage(attackLabelFor(question));
+      playKickEffect(false);
+      Sound.correct();
+    }
     renderMonsterHp(state.monsters[state.monsterIndex], state.monsterHp);
-    await sleep(500);
+    await sleep(isSpecial ? 700 : 500);
 
     proceed();
   }
 
   async function playWrongSequence(state, question, proceed) {
     setInputEnabled(false);
-    const correctLabel = question.type === "word" ? `せいかいの式は ${question.formula}` : `こたえは ${question.answer}`;
-    setMessage(`ざんねん…！ こうげきされた！（${correctLabel}）`);
+    renderStreak(state.streak);
+    setMessage(`ざんねん…！ こうげきされた！（${wrongAnswerLabel(question)}）`);
     renderPlayerHp(state.playerHp);
+    Sound.wrong();
     await sleep(900);
     proceed();
   }
@@ -180,8 +219,8 @@ document.addEventListener("DOMContentLoaded", () => {
         renderPlayerHp(state.playerHp);
         renderQuestion(question, state);
       },
-      onCorrect(state, question, proceed) {
-        playCorrectSequence(state, question, proceed);
+      onCorrect(state, question, isSpecial, proceed) {
+        playCorrectSequence(state, question, isSpecial, proceed);
       },
       onWrong(state, question, proceed) {
         playWrongSequence(state, question, proceed);
@@ -189,6 +228,7 @@ document.addEventListener("DOMContentLoaded", () => {
       onMonsterDefeated(defeatedIndex, state, proceed) {
         const defeated = state.monsters[defeatedIndex];
         setMessage(`${defeated.revealName || defeated.name}をたおした！`);
+        Sound.defeat();
         setTimeout(proceed, 900);
       },
       onFinish(result) {
@@ -211,13 +251,30 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isBest) lines.push("★ ベストきろく こうしん！ ★");
     el.resultDetail.textContent = lines.join("\n");
 
+    if (result.cleared) Sound.clear();
+    else Sound.gameOver();
+
     showScreen("result");
   }
 
-  el.btnStart.addEventListener("click", () => showScreen("modeSelect"));
+  function updateMuteButton() {
+    el.btnMute.textContent = Sound.isMuted() ? "🔇" : "🔊";
+  }
+
+  el.btnStart.addEventListener("click", () => {
+    Sound.unlock();
+    showScreen("modeSelect");
+  });
   el.btnBackToTitle.addEventListener("click", () => showScreen("title"));
   el.btnResultToTitle.addEventListener("click", () => showScreen("title"));
   el.btnRetry.addEventListener("click", () => startBattle(activeModeId));
+
+  el.btnMute.addEventListener("click", () => {
+    Sound.unlock();
+    Sound.setMuted(!Sound.isMuted());
+    updateMuteButton();
+  });
+  updateMuteButton();
 
   el.modeCards.forEach((card) => {
     card.addEventListener("click", () => startBattle(card.dataset.mode));

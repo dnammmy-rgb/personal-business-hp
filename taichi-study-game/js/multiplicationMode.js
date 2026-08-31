@@ -33,7 +33,7 @@ const MultiplicationMode = {
 
 function pickWordProblem() {
   const source = MULTIPLICATION_WORD_PROBLEMS[Math.floor(Math.random() * MULTIPLICATION_WORD_PROBLEMS.length)];
-  return { ...source, choices: buildFormulaChoices(source.formula) };
+  return { ...source, correctChoice: source.formula, choices: buildFormulaChoices(source.formula) };
 }
 
 // 文章題の「式の3択」を作る。
