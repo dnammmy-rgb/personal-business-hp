@@ -18,7 +18,9 @@ document.addEventListener("DOMContentLoaded", () => {
     monsterName: document.getElementById("monster-name"),
     monsterHpBar: document.getElementById("monster-hp-bar"),
     questionText: document.getElementById("question-text"),
-    choiceList: document.getElementById("choice-list"),
+    answerForm: document.getElementById("answer-form"),
+    answerInput: document.getElementById("answer-input"),
+    answerSubmit: document.getElementById("answer-submit"),
     battleMessage: document.getElementById("battle-message"),
     resultHeading: document.getElementById("result-heading"),
     resultDetail: document.getElementById("result-detail"),
@@ -26,14 +28,30 @@ document.addEventListener("DOMContentLoaded", () => {
     btnResultToTitle: document.getElementById("btn-result-to-title"),
   };
 
-  const MODES = { kuku: KukuMode };
-  let activeModeId = "kuku";
+  const MODES = { multiplication: MultiplicationMode };
+  let activeModeId = "multiplication";
   let battle = null;
-  let answering = false;
 
   function showScreen(name) {
     Object.values(screens).forEach((s) => s.classList.remove("screen--active"));
     screens[name].classList.add("screen--active");
+  }
+
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  function setMessage(text) {
+    el.battleMessage.textContent = text;
+  }
+
+  function formatFormula(question) {
+    return `${question.formula.replace("×", " × ")} ＝ ${question.answer}`;
+  }
+
+  function setInputEnabled(enabled) {
+    el.answerInput.disabled = !enabled;
+    el.answerSubmit.disabled = !enabled;
   }
 
   function renderPlayerHp(hp) {
@@ -50,40 +68,48 @@ document.addEventListener("DOMContentLoaded", () => {
     el.monsterHpBar.style.width = `${ratio * 100}%`;
   }
 
-  function renderQuestion(question, state) {
-    answering = false;
-    el.battleMessage.textContent = "";
-    el.monsterIndex.textContent = state.monsterIndex + 1;
-    el.monsterTotal.textContent = state.monsters.length;
-    el.questionText.textContent = question.text;
-    el.choiceList.innerHTML = "";
-
-    question.choices.forEach((choice) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "choice-btn";
-      btn.textContent = choice;
-      btn.addEventListener("click", () => onChoiceClick(btn, choice, question));
-      el.choiceList.appendChild(btn);
-    });
+  function playKickEffect() {
+    el.monsterEmoji.classList.remove("hit");
+    void el.monsterEmoji.offsetWidth; // reflow でアニメーションを再スタートさせる
+    el.monsterEmoji.classList.add("hit");
   }
 
-  function onChoiceClick(btn, choice, question) {
-    if (answering) return;
-    answering = true;
+  function renderQuestion(question, state) {
+    setMessage("");
+    el.monsterIndex.textContent = state.monsterIndex + 1;
+    el.monsterTotal.textContent = state.monsters.length;
+    el.questionText.textContent = question.question;
+    el.questionText.classList.toggle("question-text--word", question.type === "word");
+    el.answerInput.value = "";
+    setInputEnabled(true);
+    el.answerInput.focus();
+  }
 
-    const isCorrect = choice === question.answer;
-    btn.classList.add(isCorrect ? "is-correct" : "is-wrong");
+  // 正解演出：「せいかい！」→（文章題なら式を1秒表示）→「キック！」の順で見せる
+  async function playCorrectSequence(state, question, proceed) {
+    setInputEnabled(false);
+    setMessage("せいかい！");
+    await sleep(600);
 
-    if (!isCorrect) {
-      [...el.choiceList.children].forEach((child) => {
-        if (Number(child.textContent) === question.answer) {
-          child.classList.add("is-correct");
-        }
-      });
+    if (question.type === "word") {
+      setMessage(formatFormula(question));
+      await sleep(1000);
     }
 
-    setTimeout(() => battle.answer(choice), 500);
+    setMessage("キック！");
+    playKickEffect();
+    renderMonsterHp(state.monsters[state.monsterIndex], state.monsterHp);
+    await sleep(500);
+
+    proceed();
+  }
+
+  async function playWrongSequence(state, question, proceed) {
+    setInputEnabled(false);
+    setMessage(`ざんねん…！ こうげきされた！（こたえは ${question.answer}）`);
+    renderPlayerHp(state.playerHp);
+    await sleep(900);
+    proceed();
   }
 
   function startBattle(modeId) {
@@ -97,19 +123,14 @@ document.addEventListener("DOMContentLoaded", () => {
         renderPlayerHp(state.playerHp);
         renderQuestion(question, state);
       },
-      onCorrect(state) {
-        el.monsterEmoji.classList.remove("hit");
-        void el.monsterEmoji.offsetWidth; // reflow to restart animation
-        el.monsterEmoji.classList.add("hit");
-        el.battleMessage.textContent = "せいかい！ こうげき！";
-        renderMonsterHp(state.monsters[state.monsterIndex], state.monsterHp);
+      onCorrect(state, question, proceed) {
+        playCorrectSequence(state, question, proceed);
       },
-      onWrong(state) {
-        el.battleMessage.textContent = "ざんねん…！ こうげきされた！";
-        renderPlayerHp(state.playerHp);
+      onWrong(state, question, proceed) {
+        playWrongSequence(state, question, proceed);
       },
       onMonsterDefeated(defeatedIndex, state, proceed) {
-        el.battleMessage.textContent = `${state.monsters[defeatedIndex].name}をたおした！`;
+        setMessage(`${state.monsters[defeatedIndex].name}をたおした！`);
         setTimeout(proceed, 900);
       },
       onFinish(result) {
@@ -142,5 +163,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   el.modeCards.forEach((card) => {
     card.addEventListener("click", () => startBattle(card.dataset.mode));
+  });
+
+  el.answerInput.addEventListener("input", () => {
+    el.answerInput.value = el.answerInput.value.replace(/[^0-9]/g, "");
+  });
+
+  el.answerForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (el.answerInput.disabled) return;
+    const raw = el.answerInput.value.trim();
+    if (raw === "") return;
+    battle.answer(raw);
   });
 });

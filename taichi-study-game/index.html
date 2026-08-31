@@ -24,15 +24,10 @@
   <section id="screen-mode-select" class="screen">
     <h2 class="screen-heading">どのモードで たたかう？</h2>
     <div class="mode-list">
-      <button class="mode-card" data-mode="kuku">
+      <button class="mode-card" data-mode="multiplication">
         <span class="mode-card__emoji">✖️</span>
-        <span class="mode-card__title">九九モード</span>
-        <span class="mode-card__desc">1〜9のだんの かけざん</span>
-      </button>
-      <button class="mode-card mode-card--disabled" data-mode="mondai" disabled>
-        <span class="mode-card__emoji">📖</span>
-        <span class="mode-card__title">文章題モード</span>
-        <span class="mode-card__desc">じゅんびちゅう</span>
+        <span class="mode-card__title">かけ算モード</span>
+        <span class="mode-card__desc">九九と文章題で たたかおう</span>
       </button>
       <button class="mode-card mode-card--disabled" data-mode="kanji" disabled>
         <span class="mode-card__emoji">🈷️</span>
@@ -68,7 +63,19 @@
       <p id="question-text" class="question-text">問題</p>
     </div>
 
-    <div id="choice-list" class="choice-list"></div>
+    <form id="answer-form" class="answer-form" autocomplete="off">
+      <input
+        id="answer-input"
+        class="answer-input"
+        type="tel"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        maxlength="2"
+        placeholder="こたえ"
+        aria-label="こたえの数字を入力"
+      >
+      <button id="answer-submit" type="submit" class="btn btn--primary answer-submit">こたえる</button>
+    </form>
 
     <p id="battle-message" class="battle-message" aria-live="polite"></p>
   </section>
@@ -87,7 +94,8 @@
 
 <script src="js/data/monsters.js"></script>
 <script src="js/data/kuku.js"></script>
-<script src="js/data/mondai.js"></script>
+<script src="js/data/multiplicationQuestions.js"></script>
+<script src="js/multiplicationMode.js"></script>
 <script src="js/data/kanji.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/battle.js"></script>

@@ -1,4 +1,4 @@
-// バトル進行の共通ロジック。画面描画はcallbacks経由でmain.js側に任せる。
+// バトル進行の共通ロジック。画面描画・演出のタイミングはcallbacks経由でmain.js側に任せる。
 const PLAYER_HP_MAX = 3;
 
 function createBattle(mode, monsters, callbacks) {
@@ -18,6 +18,7 @@ function createBattle(mode, monsters, callbacks) {
   }
 
   function start() {
+    if (typeof mode.reset === "function") mode.reset();
     state.monsterIndex = 0;
     state.playerHp = PLAYER_HP_MAX;
     state.mistakes = 0;
@@ -35,43 +36,49 @@ function createBattle(mode, monsters, callbacks) {
     callbacks.onQuestion(state.currentQuestion, currentMonster(), state);
   }
 
-  function answer(chosenValue) {
-    const correct = chosenValue === state.currentQuestion.answer;
+  // 正解/不正解いずれも、演出(キック等)が終わってからcallbacks側がproceed()を呼ぶことで
+  // 次の問題やモンスター撃破処理に進む。演出中に状態が先走らないようにするための仕組み。
+  function answer(rawValue) {
+    const question = state.currentQuestion;
+    const chosenValue = Number(rawValue);
+    const correct = chosenValue === question.answer;
 
     if (correct) {
       state.monsterHp -= 1;
-      callbacks.onCorrect(state);
+      const defeatedIndex = state.monsterIndex;
+      const defeated = state.monsterHp <= 0;
 
-      if (state.monsterHp <= 0) {
-        const defeatedIndex = state.monsterIndex;
+      callbacks.onCorrect(state, question, () => {
+        if (!defeated) {
+          askNextQuestion();
+          return;
+        }
         state.monsterIndex += 1;
-
         if (state.monsterIndex >= state.monsters.length) {
           finish(true);
           return;
         }
-
         callbacks.onMonsterDefeated(defeatedIndex, state, () => enterMonster());
-        return;
-      }
-    } else {
-      state.mistakes += 1;
-      state.playerHp -= 1;
-      callbacks.onWrong(state);
-
-      if (state.playerHp <= 0) {
-        finish(false);
-        return;
-      }
+      });
+      return;
     }
 
-    askNextQuestion();
+    state.mistakes += 1;
+    state.playerHp -= 1;
+    const dead = state.playerHp <= 0;
+
+    callbacks.onWrong(state, question, () => {
+      if (dead) {
+        finish(false);
+      } else {
+        askNextQuestion();
+      }
+    });
   }
 
   function finish(cleared) {
     const seconds = Math.round((Date.now() - state.startedAt) / 1000);
-    const result = { cleared, mistakes: state.mistakes, seconds };
-    callbacks.onFinish(result);
+    callbacks.onFinish({ cleared, mistakes: state.mistakes, seconds });
   }
 
   return { start, answer, currentMonster };
