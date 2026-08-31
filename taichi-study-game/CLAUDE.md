@@ -23,9 +23,9 @@
   - 九九の計算問題：`js/data/kuku.js`（`generateKukuQuestion()`）
   - かけ算文章題：`js/data/multiplicationQuestions.js`（配列に追加するだけで問題を増やせる）
 - ⏳ 漢字モード：モード選択画面にボタンはあるが「じゅんびちゅう」表示のみ（`js/data/kanji.js` にデータを追加すれば有効化できる構造）
-- ⏳ 敵モンスターの画像：まだ無いので、絵文字（👹👺👻🐉👾など）で仮表示している（`js/data/monsters.js`）。実画像が届いたら差し替える。
+- ✅ 敵モンスターの画像：ユーザー提供の「敵キャラずかん」画像から8体分を切り出し・背景透過し実装済み（`assets/images/monsters/`）。絵文字表示は完全に廃止し、すべて`<img>`表示（詳細は下記6.）。
 
-次のステップ：ユーザーから漢字モードの詳細仕様と敵キャラ画像を受け取り、`js/data/kanji.js` / `js/data/monsters.js` を実装・差し替える。
+次のステップ：ユーザーから漢字モードの詳細仕様を受け取り、`js/data/kanji.js` を実装する。
 
 ## 3. ディレクトリ構成
 
@@ -48,7 +48,7 @@ taichi-study-game/
 │       └── monsters.js                 # モンスター一覧（名前・HP・絵文字/画像パス）
 └── assets/
     ├── images/
-    │   ├── monsters/      # 敵キャラ画像を入れる場所（届いたらここに配置）
+    │   ├── monsters/      # 敵キャラ画像（8体分の透過PNG + 元の「敵キャラずかん」原画像）
     │   └── ui/             # アイコンなどUI画像
     └── sounds/             # 効果音（任意・未使用）
 ```
@@ -65,9 +65,16 @@ taichi-study-game/
   - 100vh問題を避けるため `min-height` やflexboxレイアウトを使う。
   - ダブルタップズームなどの誤操作を防ぐため `touch-action: manipulation` を指定済み。
 - かけ算モードの答えは数字入力式。新しい出題モード（漢字など）を足す場合も、同じ `#answer-input` / `#answer-form` を使い回せるように `question` / `answer` / `type` を持つ問題オブジェクトの形に揃えると実装しやすい。
-- モンスター画像を追加する際は `assets/images/monsters/` に配置し、`js/data/monsters.js` の各モンスターに `image: "assets/images/monsters/xxx.png"` を追加する（未設定なら絵文字を表示するフォールバックになっている）。
 - 進捗・ベストスコアは `localStorage`（キー接頭辞 `taichiStudyGame_`）に保存する。サーバーやDBは使わない。
 - コメントは「なぜそうしているか」が非自明な箇所にのみ最小限で付ける。
+
+## 6. モンスター画像について
+
+- 画像は `js/data/monsters.js` の各モンスターに `image: "assets/images/monsters/xxx.png"` の形で持たせ、ゲーム画面では常に `<img>` で表示する（絵文字フォールバックは廃止済み）。
+- `tier`（`"zako"` / `"boss"` / `"lastboss"`）で表示サイズが変わる。CSS側は `.monster-image--zako` / `--boss` / `--lastboss`（`css/style.css`）でクランプ指定しており、ザコ敵130〜180px・中ボス200〜250px・ラスボス250〜320px程度になるようレスポンシブに調整済み。
+- ザコ敵が複数同時に並ぶ画面用に `#monster-group`（`.monster-group`、`data-count`属性で1〜3体に応じてザコ敵の表示サイズを自動的に少し縮める）というコンテナと、複数体を配列で受け取れる `renderMonsterGroup(monsters)`（`js/main.js`）を用意済み。ただし現在のバトルの流れ（`js/battle.js`）は1ステージ=1体のままで、複数体が同時に出現する新しい遭遇ロジックまでは実装していない。今後「怒りの拳」等でザコ敵をまとめて出す仕様を追加する場合は、まずbattle.jsの状態管理（複数体のHP管理・撃破判定）を検討すること。
+- ラスボスは戦闘中は `name: "？？？"` と表示され、倒した瞬間の演出でだけ `revealName: "大魔王 闇"` を表示する（`js/battle.js` の `onMonsterDefeated` は最後の1体を倒した場合も必ず呼ばれるようになっている）。
+- 元の「敵キャラずかん」画像（`assets/images/monsters/` 内のChatGPT生成ファイル）から8体を切り出し・AI背景除去（rembg）で透過PNG化したものを使用している。同じ手順が必要な場合は、Pillowで座標を指定して切り出し→rembgで透過、の順で行うとよい。
 
 ## 5. ローカル確認方法
 

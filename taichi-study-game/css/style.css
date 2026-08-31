@@ -120,8 +120,17 @@ body {
 }
 
 .title-monsters {
-  font-size: 2.6rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 12px;
   margin-bottom: 20px;
+}
+
+.title-monsters img {
+  height: 84px;
+  width: auto;
+  object-fit: contain;
 }
 
 /* ---------- モード選択画面 ---------- */
@@ -238,14 +247,45 @@ body {
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
 }
 
-.monster-emoji {
-  font-size: 4.5rem;
-  line-height: 1;
+.monster-group {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
   margin-bottom: 4px;
+}
+
+.monster-image {
+  display: block;
+  max-width: 100%;
+  min-width: 0;
+  object-fit: contain;
   transition: transform 0.15s ease;
 }
 
-.monster-emoji.hit {
+.monster-image--zako {
+  height: clamp(130px, 22vw, 180px);
+}
+
+.monster-image--boss {
+  height: clamp(200px, 30vw, 250px);
+}
+
+.monster-image--lastboss {
+  height: clamp(250px, 38vw, 320px);
+}
+
+/* ザコ敵が2〜3体同時に並ぶときは、横幅に収まるよう少し小さめに表示する */
+.monster-group[data-count="2"] .monster-image--zako {
+  height: clamp(100px, 18vw, 160px);
+}
+
+.monster-group[data-count="3"] .monster-image--zako {
+  height: clamp(85px, 15vw, 135px);
+}
+
+.monster-image.hit {
   animation: monster-hit 0.3s ease;
 }
 

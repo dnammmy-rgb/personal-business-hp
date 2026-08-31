@@ -53,12 +53,16 @@ function createBattle(mode, monsters, callbacks) {
           askNextQuestion();
           return;
         }
-        state.monsterIndex += 1;
-        if (state.monsterIndex >= state.monsters.length) {
-          finish(true);
-          return;
-        }
-        callbacks.onMonsterDefeated(defeatedIndex, state, () => enterMonster());
+        // 最後の1体（ラスボス）を倒した場合も、必ずonMonsterDefeatedを経由させる。
+        // ラスボスの名前(revealName)の演出はここで表示されるため。
+        callbacks.onMonsterDefeated(defeatedIndex, state, () => {
+          state.monsterIndex += 1;
+          if (state.monsterIndex >= state.monsters.length) {
+            finish(true);
+          } else {
+            enterMonster();
+          }
+        });
       });
       return;
     }

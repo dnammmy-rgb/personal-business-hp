@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     playerHp: document.getElementById("player-hp"),
     monsterIndex: document.getElementById("monster-index"),
     monsterTotal: document.getElementById("monster-total"),
-    monsterEmoji: document.getElementById("monster-emoji"),
+    monsterGroup: document.getElementById("monster-group"),
     monsterName: document.getElementById("monster-name"),
     monsterHpBar: document.getElementById("monster-hp-bar"),
     questionText: document.getElementById("question-text"),
@@ -58,8 +58,21 @@ document.addEventListener("DOMContentLoaded", () => {
     el.playerHp.textContent = "❤️".repeat(Math.max(hp, 0)) + "🖤".repeat(PLAYER_HP_MAX - Math.max(hp, 0));
   }
 
+  // monsters は現状つねに1体だが、ザコ敵が複数同時に並ぶ画面にも対応できるよう配列で受け取る
+  function renderMonsterGroup(monsters) {
+    el.monsterGroup.innerHTML = "";
+    el.monsterGroup.dataset.count = String(monsters.length);
+    monsters.forEach((monster) => {
+      const img = document.createElement("img");
+      img.src = monster.image;
+      img.alt = monster.name;
+      img.className = `monster-image monster-image--${monster.tier}`;
+      el.monsterGroup.appendChild(img);
+    });
+  }
+
   function renderMonster(monster) {
-    el.monsterEmoji.textContent = monster.emoji;
+    renderMonsterGroup([monster]);
     el.monsterName.textContent = monster.name;
   }
 
@@ -69,9 +82,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function playKickEffect() {
-    el.monsterEmoji.classList.remove("hit");
-    void el.monsterEmoji.offsetWidth; // reflow でアニメーションを再スタートさせる
-    el.monsterEmoji.classList.add("hit");
+    el.monsterGroup.querySelectorAll(".monster-image").forEach((img) => {
+      img.classList.remove("hit");
+      void img.offsetWidth; // reflow でアニメーションを再スタートさせる
+      img.classList.add("hit");
+    });
   }
 
   function renderQuestion(question, state) {
@@ -130,7 +145,8 @@ document.addEventListener("DOMContentLoaded", () => {
         playWrongSequence(state, question, proceed);
       },
       onMonsterDefeated(defeatedIndex, state, proceed) {
-        setMessage(`${state.monsters[defeatedIndex].name}をたおした！`);
+        const defeated = state.monsters[defeatedIndex];
+        setMessage(`${defeated.revealName || defeated.name}をたおした！`);
         setTimeout(proceed, 900);
       },
       onFinish(result) {
