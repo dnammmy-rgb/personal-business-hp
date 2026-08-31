@@ -10,14 +10,14 @@ const MultiplicationMode = {
     this.recentKeys = [];
   },
 
-  nextQuestion() {
+  nextQuestion(tier) {
     let question;
     let key;
     let attempts = 0;
 
     // 同じ問題が続けて出ないよう、直近と被ったら数回だけ引き直す
     do {
-      question = Math.random() < MULTIPLICATION_WORD_RATIO ? pickWordProblem() : generateKukuQuestion();
+      question = Math.random() < MULTIPLICATION_WORD_RATIO ? pickWordProblem() : generateKukuQuestion(tier);
       key = `${question.type}:${question.formula}`;
       attempts += 1;
     } while (this.recentKeys.includes(key) && attempts < 10);

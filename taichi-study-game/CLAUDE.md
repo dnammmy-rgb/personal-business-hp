@@ -21,12 +21,13 @@
   - **九九の計算問題**：答えを数字入力（`#answer-input` に入力して「こたえる」）
   - **かけ算文章題**：正しい式を3択で選ぶ形式（`#choice-list`）。まちがいの選択肢は①かける数とかけられる数を入れ替えたもの ②数字を1つだけずらしたもの、の2種類を自動生成（`js/multiplicationMode.js` の `buildFormulaChoices()`）。式を選んだ時点で正誤が決まる（選んだあとの数字入力は無し）
   - 正解時は「せいかい！」→（文章題のときだけ使った式と答えを1秒表示）→「キック！」の順で演出し、式と答えのつながりが分かるようにしている（`js/main.js` の `playCorrectSequence`）
-  - 九九の計算問題：`js/data/kuku.js`（`generateKukuQuestion()`）
+  - 九九の計算問題：`js/data/kuku.js`（`generateKukuQuestion(tier)`）
   - かけ算文章題：`js/data/multiplicationQuestions.js`（配列に追加するだけで問題を増やせる）
-- ✅ 漢字モード：実際に遊べる。小学2年生で習う漢字36語（`js/data/kanji.js` の `KANJI_WORDS`）から、ひらがな語→漢字の3択で出題（`js/kanjiMode.js`）。まちがいの選択肢はできるだけ同じなかま（天気・生き物・かぞく等の`cluster`）から選ぶ。正解時は「ブレイクキック！」と表示（九九・文章題の「キック！」と区別）
+- ✅ 漢字モード：実際に遊べる。小学1・2年生で習う漢字約56語（`js/data/kanji.js` の `KANJI_WORDS`）から、ひらがな語→漢字の3択で出題（`js/kanjiMode.js`）。まちがいの選択肢はできるだけ同じなかま（天気・生き物・かぞく等の`cluster`）から選ぶ。正解時は「ブレイクキック！」と表示（九九・文章題の「キック！」と区別）
+- ✅ 敵の強さに応じた難易度調整：かけ算モード・漢字モードどちらも、今戦っているモンスターの`tier`（zako/boss/lastboss）に応じて出題の傾向が少しずつ難しくなる。ザコ敵はやさしめ、中ボスはやや難しめ、ラスボスは中ボスと同じ傾向をより強めに（詳細は下記6.）
 - ✅ 必殺技「怒りの拳」：モード共通で、3問連続正解すると次の正解が必殺技になる（`js/battle.js` の `STREAK_FOR_SPECIAL`）。ザコ敵は残りHPに関わらず一撃で撃破、中ボス・ラスボスはHPを半分削る。画面フラッシュ＋モンスターの大きめアニメーション演出つき。まちがえると連続記録はリセットされる
 - ✅ 効果音：Web Audio APIでその場で音を合成（外部音声ファイル不使用）。正解・失敗・必殺技・撃破・クリア・ゲームオーバーの一式（`js/sound.js`）。右上の🔊ボタンでミュート切り替え可能（`localStorage`に保存）
-- ✅ BGM：効果音と同じくWeb Audio APIで合成。ザコ敵/中ボス（青鬼・赤鬼・黒鬼）/ラスボス（？？？）でそれぞれ専用BGMがあり、登場するモンスターの`tier`に応じて自動で切り替わる。効果音より小さい音量でループ再生し、効果音とは同時に鳴る（詳細は下記6.）
+- ✅ BGM：効果音と同じくWeb Audio APIで合成。ザコ敵/中ボス（青鬼・赤鬼・黒鬼）/ラスボス（？？？）でそれぞれ専用BGMがあり、登場するモンスターの`tier`に応じて自動で切り替わる。効果音より小さい音量でループ再生し、効果音とは同時に鳴る（詳細は下記7.）
 - ✅ 敵モンスターの画像：ユーザー提供の「敵キャラずかん」画像から8体分を切り出し・背景透過し実装済み（`assets/images/monsters/`）。絵文字表示は完全に廃止し、すべて`<img>`表示（詳細は下記5.）。
 
 次のステップ：とくに指定なし。ユーザーからの追加要望を待つ。
@@ -79,11 +80,26 @@ taichi-study-game/
 
 - 画像は `js/data/monsters.js` の各モンスターに `image: "assets/images/monsters/xxx.png"` の形で持たせ、ゲーム画面では常に `<img>` で表示する（絵文字フォールバックは廃止済み）。
 - `tier`（`"zako"` / `"boss"` / `"lastboss"`）で表示サイズが変わる。CSS側は `.monster-image--zako` / `--boss` / `--lastboss`（`css/style.css`）でクランプ指定しており、ザコ敵130〜180px・中ボス200〜250px・ラスボス250〜320px程度になるようレスポンシブに調整済み。
-- ザコ敵が複数同時に並ぶ画面用に `#monster-group`（`.monster-group`、`data-count`属性で1〜3体に応じてザコ敵の表示サイズを自動的に少し縮める）というコンテナと、複数体を配列で受け取れる `renderMonsterGroup(monsters)`（`js/main.js`）を用意済み。ただし現在のバトルの流れ（`js/battle.js`）は1ステージ=1体のままで、複数体が同時に出現する新しい遭遇ロジックまでは実装していない（下記6.の「怒りの拳」もこの1体構成の上で動く）。
+- ザコ敵が複数同時に並ぶ画面用に `#monster-group`（`.monster-group`、`data-count`属性で1〜3体に応じてザコ敵の表示サイズを自動的に少し縮める）というコンテナと、複数体を配列で受け取れる `renderMonsterGroup(monsters)`（`js/main.js`）を用意済み。ただし現在のバトルの流れ（`js/battle.js`）は1ステージ=1体のままで、複数体が同時に出現する新しい遭遇ロジックまでは実装していない（下記7.の「怒りの拳」もこの1体構成の上で動く）。
 - ラスボスは戦闘中は `name: "？？？"` と表示され、倒した瞬間の演出でだけ `revealName: "大魔王 闇"` を表示する（`js/battle.js` の `onMonsterDefeated` は最後の1体を倒した場合も必ず呼ばれるようになっている）。
 - 元の「敵キャラずかん」画像（`assets/images/monsters/` 内のChatGPT生成ファイル）から8体を切り出し・AI背景除去（rembg）で透過PNG化したものを使用している。同じ手順が必要な場合は、Pillowで座標を指定して切り出し→rembgで透過、の順で行うとよい。
 
-## 6. 必殺技「怒りの拳」・効果音・BGMについて
+## 6. 敵の強さに応じた難易度調整について
+
+`js/battle.js` の `askNextQuestion()` が `mode.nextQuestion(currentMonster().tier)` のようにtierを渡し、各モードが出題の傾向を変える。かけ算モード・漢字モードとも、モード選択自体やモード内の基本比率（九九:文章題=60:40など）は変えていない。
+
+- **九九**（`js/data/kuku.js` の `generateKukuQuestion(tier)`）：段の数字を重み付き配列（`KUKU_POOL_ZAKO`/`KUKU_POOL_BOSS`/`KUKU_POOL_LASTBOSS`）から抽選している。
+  - ザコ敵：1〜5の段を多め、6〜9も少し
+  - 中ボス：6〜9の段を多め。加えて35%の確率で`KUKU_HARD_COMBOS`（7×8・8×9・6×7など）から直接出す
+  - ラスボス：7・8・9の段を特に多め、15%の確率で1〜5の簡単な問題を混ぜる
+  - かけ算文章題（`multiplicationQuestions.js`）は今回は難易度調整の対象外（従来どおりtierに関係なく出題）
+- **漢字**（`js/kanjiMode.js`）：`KANJI_WORDS` に `level`（1=1年生相当、2=2年生相当）を持たせ、tierごとに出題タイプを重み付き抽選する（`generateKanjiQuestionForTier()`）。
+  - ザコ敵：「ひらがな→漢字」の読み問題のみ。`level:1`を75%、`level:2`を25%の比率で出す
+  - 中ボス／ラスボス：読み問題（`level:2`中心）に加えて、文章の中から答える問題（`generateSentenceQuestion`、`sentence`フィールドを持つ語のみ対象）、反対語（`generateAntonymQuestion`、`KANJI_ANTONYMS`）、季節・曜日・方角の並び问題（`generateSequenceQuestion`、`KANJI_SEQUENCES`）、なかま問題（`generateCategoryQuestion`、`cluster`を利用）を重み付きで混ぜる。ラスボスの方が中ボスよりこれらの応用問題の比率をやや高めている
+  - 新しい漢字を追加する場合は`level`を1か2にし、`cluster`も指定する。文章問題に使いたい場合は`sentence`も追加する（未指定の語は文章問題には出ない）。小学2年生までの範囲を超える漢字は追加しないこと
+  - まちがいの選択肢（`buildKanjiChoices`）は「同じなかま・同じレベル」を優先して選ぶため、レベルをまたいだ変な組み合わせになりにくい
+
+## 7. 必殺技「怒りの拳」・効果音・BGMについて
 
 - `js/battle.js` の `state.streak` で連続正解数を管理し、`STREAK_FOR_SPECIAL`（現在3）に達した次の正解が必殺技になる。まちがえると`streak`は0に戻る。ダメージ量は`tier`によって分岐：ザコ敵は`state.monsterHp`をそのまま渡して一撃撃破、中ボス・ラスボスは`Math.ceil(state.monsterHp / 2)`で半分減らす。
 - 演出は`js/main.js`の`playCorrectSequence`が`isSpecial`フラグを見て分岐する。通常時は`.monster-image.hit`、必殺技時は`.monster-image.big-hit`（より大きい振動＋明滅、`css/style.css`）と`#screen-flash`（画面全体を一瞬明るくするオーバーレイ）を発動する。
@@ -94,7 +110,7 @@ taichi-study-game/
   - `Sound.stopBgm()` を `js/main.js` の `showResult()` の先頭で呼び、クリア/ゲームオーバー時にBGMを止めている。リトライ時は`battle.start()`→最初のモンスター描画で`playBgmForTier`が再度呼ばれ、自然に頭から再生される。
   - BGMのオン/オフも効果音と同じ`muted`フラグ・同じミュートボタンに乗っている（`tone()`/`noiseBurst()`内部の判定を共用しているため、BGM側に個別のミュート制御は実装していない）。
 
-## 7. ローカル確認方法
+## 8. ローカル確認方法
 
 ```bash
 cd taichi-study-game

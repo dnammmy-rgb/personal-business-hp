@@ -35,7 +35,8 @@ function createBattle(mode, monsters, callbacks) {
   }
 
   function askNextQuestion() {
-    state.currentQuestion = mode.nextQuestion();
+    // 敵のtierを渡し、モード側で敵の強さに応じた難易度の問題を選べるようにする
+    state.currentQuestion = mode.nextQuestion(currentMonster().tier);
     callbacks.onQuestion(state.currentQuestion, currentMonster(), state);
   }
 
