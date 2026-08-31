@@ -33,5 +33,35 @@ const MultiplicationMode = {
 
 function pickWordProblem() {
   const source = MULTIPLICATION_WORD_PROBLEMS[Math.floor(Math.random() * MULTIPLICATION_WORD_PROBLEMS.length)];
-  return { ...source };
+  return { ...source, choices: buildFormulaChoices(source.formula) };
+}
+
+// 文章題の「式の3択」を作る。
+// まちがいの式は2種類：①かける数とかけられる数を入れ替えたもの ②どちらかの数字を1つだけずらしたもの
+function buildFormulaChoices(formula) {
+  const [a, b] = formula.split("×").map(Number);
+  const correct = `${a}×${b}`;
+  const swapped = `${b}×${a}`;
+
+  let nudged;
+  let attempts = 0;
+  do {
+    const nudgeFirst = Math.random() < 0.5;
+    const delta = Math.random() < 0.5 ? -1 : 1;
+    const na = nudgeFirst ? Math.max(1, a + delta) : a;
+    const nb = nudgeFirst ? b : Math.max(1, b + delta);
+    nudged = `${na}×${nb}`;
+    attempts += 1;
+  } while ((nudged === correct || nudged === swapped) && attempts < 10);
+
+  return shuffleChoices([correct, swapped, nudged]);
+}
+
+function shuffleChoices(choices) {
+  const result = [...choices];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
 }

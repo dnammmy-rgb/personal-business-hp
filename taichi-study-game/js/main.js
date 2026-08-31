@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     answerForm: document.getElementById("answer-form"),
     answerInput: document.getElementById("answer-input"),
     answerSubmit: document.getElementById("answer-submit"),
+    formulaChoiceList: document.getElementById("formula-choice-list"),
     battleMessage: document.getElementById("battle-message"),
     resultHeading: document.getElementById("result-heading"),
     resultDetail: document.getElementById("result-detail"),
@@ -52,6 +53,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function setInputEnabled(enabled) {
     el.answerInput.disabled = !enabled;
     el.answerSubmit.disabled = !enabled;
+    el.formulaChoiceList.querySelectorAll(".formula-choice-btn").forEach((btn) => {
+      btn.disabled = !enabled;
+    });
   }
 
   function renderPlayerHp(hp) {
@@ -95,9 +99,46 @@ document.addEventListener("DOMContentLoaded", () => {
     el.monsterTotal.textContent = state.monsters.length;
     el.questionText.textContent = question.question;
     el.questionText.classList.toggle("question-text--word", question.type === "word");
-    el.answerInput.value = "";
+
+    // 文章題は「式の3択」、九九の計算問題は数字入力で答える
+    const isWord = question.type === "word";
+    el.answerForm.hidden = isWord;
+    el.formulaChoiceList.hidden = !isWord;
+
+    if (isWord) {
+      renderFormulaChoices(question);
+    } else {
+      el.answerInput.value = "";
+      el.answerInput.focus();
+    }
+
     setInputEnabled(true);
-    el.answerInput.focus();
+  }
+
+  function renderFormulaChoices(question) {
+    el.formulaChoiceList.innerHTML = "";
+    question.choices.forEach((formula) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "formula-choice-btn";
+      btn.textContent = formula;
+      btn.addEventListener("click", () => onFormulaChoiceClick(question, btn, formula));
+      el.formulaChoiceList.appendChild(btn);
+    });
+  }
+
+  function onFormulaChoiceClick(question, btn, formula) {
+    if (btn.disabled) return;
+    const isCorrect = formula === question.formula;
+    btn.classList.add(isCorrect ? "is-correct" : "is-wrong");
+    if (!isCorrect) {
+      el.formulaChoiceList.querySelectorAll(".formula-choice-btn").forEach((b) => {
+        if (b.textContent === question.formula) b.classList.add("is-correct");
+      });
+    }
+    // 正誤判定は式を選んだ時点で確定する。battle.jsの数値比較の仕組みをそのまま使うため、
+    // 正解なら本来の答え、不正解なら絶対に一致しない値(answer+1)を渡す。
+    battle.answer(isCorrect ? question.answer : question.answer + 1);
   }
 
   // 正解演出：「せいかい！」→（文章題なら式を1秒表示）→「キック！」の順で見せる
@@ -121,7 +162,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function playWrongSequence(state, question, proceed) {
     setInputEnabled(false);
-    setMessage(`ざんねん…！ こうげきされた！（こたえは ${question.answer}）`);
+    const correctLabel = question.type === "word" ? `せいかいの式は ${question.formula}` : `こたえは ${question.answer}`;
+    setMessage(`ざんねん…！ こうげきされた！（${correctLabel}）`);
     renderPlayerHp(state.playerHp);
     await sleep(900);
     proceed();

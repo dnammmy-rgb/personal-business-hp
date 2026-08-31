@@ -18,8 +18,9 @@
 
 - ✅ 画面遷移（タイトル→モード選択→バトル→リザルト）の骨組み
 - ✅ かけ算モード：実際に遊べる。九九の計算問題（約60%）とかけ算文章題（約40%）をランダムにまぜて出題し、直近5問と同じ問題は出さないようにしている（`js/multiplicationMode.js`）
-  - 答えは4択ではなく **数字入力**（`#answer-input` に入力して「こたえる」）
-  - 正解時は「せいかい！」→（文章題のときだけ使った式を1秒表示）→「キック！」の順で演出し、式と答えのつながりが分かるようにしている（`js/main.js` の `playCorrectSequence`）
+  - **九九の計算問題**：答えを数字入力（`#answer-input` に入力して「こたえる」）
+  - **かけ算文章題**：正しい式を3択で選ぶ形式（`#formula-choice-list`）。まちがいの選択肢は①かける数とかけられる数を入れ替えたもの ②数字を1つだけずらしたもの、の2種類を自動生成（`js/multiplicationMode.js` の `buildFormulaChoices()`）。式を選んだ時点で正誤が決まる（選んだあとの数字入力は無し）
+  - 正解時は「せいかい！」→（文章題のときだけ使った式と答えを1秒表示）→「キック！」の順で演出し、式と答えのつながりが分かるようにしている（`js/main.js` の `playCorrectSequence`）
   - 九九の計算問題：`js/data/kuku.js`（`generateKukuQuestion()`）
   - かけ算文章題：`js/data/multiplicationQuestions.js`（配列に追加するだけで問題を増やせる）
 - ⏳ 漢字モード：モード選択画面にボタンはあるが「じゅんびちゅう」表示のみ（`js/data/kanji.js` にデータを追加すれば有効化できる構造）
@@ -64,11 +65,12 @@ taichi-study-game/
   - `touchstart`/クリックの両方で反応するよう `click` イベントで統一（Safariでも問題なく発火）。
   - 100vh問題を避けるため `min-height` やflexboxレイアウトを使う。
   - ダブルタップズームなどの誤操作を防ぐため `touch-action: manipulation` を指定済み。
-- かけ算モードの答えは数字入力式。新しい出題モード（漢字など）を足す場合も、同じ `#answer-input` / `#answer-form` を使い回せるように `question` / `answer` / `type` を持つ問題オブジェクトの形に揃えると実装しやすい。
+- 問題オブジェクトは `type` / `question` / `answer` を共通で持ち、`type`によって回答UIを出し分けている（`js/main.js` の `renderQuestion`）：`"kuku"` は数字入力（`#answer-form`）、`"word"` は式の3択（`#formula-choice-list`、`choices`配列と`formula`が必要）。新しい出題タイプを足す場合もこの型に揃えると実装しやすい。
+- `hidden`属性で要素を出し分ける際は要注意：要素に`display:flex`等のCSSを個別指定していると`[hidden]`のUA既定スタイルを上書きしてしまうため、`css/style.css`冒頭の `[hidden] { display: none !important; }` で強制している。新しく`hidden`で切り替える要素を増やす場合もこのルールでカバーされる。
 - 進捗・ベストスコアは `localStorage`（キー接頭辞 `taichiStudyGame_`）に保存する。サーバーやDBは使わない。
 - コメントは「なぜそうしているか」が非自明な箇所にのみ最小限で付ける。
 
-## 6. モンスター画像について
+## 5. モンスター画像について
 
 - 画像は `js/data/monsters.js` の各モンスターに `image: "assets/images/monsters/xxx.png"` の形で持たせ、ゲーム画面では常に `<img>` で表示する（絵文字フォールバックは廃止済み）。
 - `tier`（`"zako"` / `"boss"` / `"lastboss"`）で表示サイズが変わる。CSS側は `.monster-image--zako` / `--boss` / `--lastboss`（`css/style.css`）でクランプ指定しており、ザコ敵130〜180px・中ボス200〜250px・ラスボス250〜320px程度になるようレスポンシブに調整済み。
@@ -76,7 +78,7 @@ taichi-study-game/
 - ラスボスは戦闘中は `name: "？？？"` と表示され、倒した瞬間の演出でだけ `revealName: "大魔王 闇"` を表示する（`js/battle.js` の `onMonsterDefeated` は最後の1体を倒した場合も必ず呼ばれるようになっている）。
 - 元の「敵キャラずかん」画像（`assets/images/monsters/` 内のChatGPT生成ファイル）から8体を切り出し・AI背景除去（rembg）で透過PNG化したものを使用している。同じ手順が必要な場合は、Pillowで座標を指定して切り出し→rembgで透過、の順で行うとよい。
 
-## 5. ローカル確認方法
+## 6. ローカル確認方法
 
 ```bash
 cd taichi-study-game
