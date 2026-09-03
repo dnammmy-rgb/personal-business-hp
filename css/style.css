@@ -226,6 +226,13 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
     background-size: cover, cover;
     background-position: center, center 30%;
   }
+  .hero__inner {
+    text-align: left;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .hero__cta-group,
+  .hero__badges { justify-content: flex-start; }
 }
 .hero__eyebrow {
   display: inline-flex;
